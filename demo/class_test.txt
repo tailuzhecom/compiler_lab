@@ -1,0 +1,11 @@
+class A {
+    int a = 1, b;
+    double c;
+    int add(int a, int b) { return a + b; }
+    void print() {}
+};
+
+int main() {
+    A a;
+    a.add(a.a, a.b);
+}
