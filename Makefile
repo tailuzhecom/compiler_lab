@@ -22,7 +22,7 @@ scanner.o: scanner.cpp parser.tab.h
 .PYHONY: clean
 
 clean:
-	-@ rm parser.tab.cpp parser.tab.hpp scanner.cpp test
+	-@ rm parser.tab.cpp parser.tab.hpp scanner.cpp  scanner.o parser.tab.o cgen.o test
 
 run:
 	cat ./input.txt | ./test
