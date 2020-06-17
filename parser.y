@@ -24,8 +24,22 @@ int yylex();
     char *strval;
     int subtok;
     ASTNode *node;
-    Statement *stmt_ptr;
+    Block *block_ptr;
     Sentence *sentence_ptr;
+    IfStmt *ifstmt_ptr;
+    WhileStmt *whilestmt_ptr;
+    ForStmt *forstmt_ptr;
+    DeclStmt *declstmt_ptr;
+    AssignStmt *assignstmt_ptr;
+    Expr *expr_ptr;
+    std::string *str_ptr;
+    ArgsList *argslist_ptr;
+    IdList *idlist_ptr;
+    ExprList *exprlist_ptr;
+    CallStmt *callstmt_ptr;
+    Factor *factor_ptr;
+    BinExpr *binexpr_ptr;
+    SingleExpr *singleexpr_ptr;
 }
 
 /* token*/
@@ -63,45 +77,57 @@ int yylex();
 %left '*' '/' '%'
 %left EQUAL LESS LESS_E GREATER GREATER_E
 
-%type <intval>  id_list
-%type <node>  bin_expr factor beg call_stmt
-%type <node> func class_decl global_decl_stmt
-%type <node> case_list obj_member obj_call  single_expr
-%type <stmt_ptr> statement
-%type <sentence_ptr> sentence decl_stmt assign_stmt if_stmt return_stmt break_stmt while_stmt for_stmt switch_stmt expr
-
+%type <strval> type_dec
+%type <node> beg
+%type <node> func class_decl
+%type <node> case_list obj_member obj_call
+%type <block_ptr> block
+%type <sentence_ptr> sentence return_stmt break_stmt switch_stmt
+%type <ifstmt_ptr> if_stmt
+%type <whilestmt_ptr> while_stmt
+%type <forstmt_ptr> for_stmt
+%type <declstmt_ptr> decl_stmt global_decl_stmt
+%type <assignstmt_ptr> assign_stmt
+%type <expr_ptr> expr
+%type <argslist_ptr> args_list class_decl_stmt_list
+%type <idlist_ptr> id_list
+%type <callstmt_ptr> call_stmt
+%type <exprlist_ptr> expr_list
+%type <factor_ptr> factor
+%type <binexpr_ptr> bin_expr
+%type <singleexpr_ptr> single_expr
 
 %start beg
 
 %%
 
 beg: func { prog->Append($1); }
-   | func beg { prog->Append($1); }
+   | beg func { prog->Append($2); }
    | global_decl_stmt { prog->Append($1); }
-   | global_decl_stmt beg { prog->Append($1); }
+   | beg global_decl_stmt { prog->Append($2); }
    | class_decl { prog->Append($1); }
-   | class_decl beg { prog->Append($1); }
+   | beg class_decl { prog->Append($2); }
    |
    ;
 
 /* 语法规则 */
 //函数定义
-func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET statement RBRACKET { $$ = new Function($2); }
+func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET block RBRACKET { $$ = new Function($1, $2, $4, $7); }
     ;
 
 // 函数定义时所使用的形参
-args_list: type_dec IDENTITY { printf("arg name: %s\n", $2); }
-         | type_dec IDENTITY ',' args_list { printf("arg name: %s\n", $2); }
-	 |
+args_list: type_dec IDENTITY { $$ = new ArgsList; $$->Append(VariableDef($1, $2)); printf("arg name: %s\n", $2); }
+         | args_list ',' type_dec IDENTITY { $1->Append(VariableDef($3, $4)); printf("arg name: %s\n", $4); }
+	 | { $$ = new ArgsList; }
 	 ;
 // 类声明
-class_decl: CLASS IDENTITY LBRACKET class_decl_stmt_list RBRACKET ';' { $$ = new Class; printf("class %s\n", $2); }
+class_decl: CLASS IDENTITY LBRACKET class_decl_stmt_list RBRACKET ';' { $$ = new Class($2, $4); printf("class %s\n", $2); }
 
-// 注意statement中sentence的顺序
+// 注意block中sentence的顺序
 // block
-statement: sentence ';' { $$ = new Statement; $$->Append($1); }
-    | statement sentence ';' { $1->Append($2); }
-    | { $$ = new Statement; }
+block: sentence ';' { $$ = new Block; $$->Append($1); }
+    | block sentence ';' { $1->Append($2); }
+    | { $$ = new Block; }
     ;
 
 // 句子种类
@@ -118,8 +144,11 @@ sentence: decl_stmt     { $$ = $1; }
     ;
 
 // 变量声明，允许初始化时赋值
-decl_stmt: type_dec id_list { $$ = new DeclStmt; printf("declare statement\n"); }
-    | type_dec assign_stmt  { printf("declare statement & assignment\n"); }
+decl_stmt: type_dec id_list {
+    	$$ = new DeclStmt($2->GetIds());
+    	$$->SetTypeForAllVariables($1);
+    	printf("declare statement\n");
+    }
     ;
 
 
@@ -128,52 +157,57 @@ global_decl_stmt: decl_stmt ';' { $$ = $1; printf("global declare statement\n");
 		;
 
 // class声明与定义，包括成员变量和成员函数
-class_decl_stmt_list: global_decl_stmt
-		    | global_decl_stmt class_decl_stmt_list	
+class_decl_stmt_list: type_dec IDENTITY ';' {
+			$$ = new ArgsList;
+		    	$$->Append(VariableDef($1, $2));
+		    }
+		    | class_decl_stmt_list type_dec IDENTITY ';' {
+		    	$1->Append(VariableDef($2, $3));
+		    }
 		    | func
 		    | func class_decl_stmt_list
                     | 
 		    ;
 
 // if语句
-if_stmt: IF LPAREN expr RPAREN LBRACKET statement RBRACKET { $$ = new IfStmt; printf("if statement\n"); }
-       | IF LPAREN expr RPAREN LBRACKET statement RBRACKET ELSE LBRACKET statement RBRACKET { $$ = new IfStmt; printf("if-else statement\n"); }
+if_stmt: IF LPAREN expr RPAREN LBRACKET block RBRACKET { $$ = new IfStmt; $$->SetBoolExpr($3); $$->SetTrueBlock($6); printf("if statement\n"); }
+       | IF LPAREN expr RPAREN LBRACKET block RBRACKET ELSE LBRACKET block RBRACKET { $$ = new IfStmt; $$->SetBoolExpr($3); $$->SetTrueBlock($6); $$->SetFalseBlock($10); printf("if-else statement\n"); }
        ;
 
 // while语句
-while_stmt: WHILE LPAREN expr RPAREN LBRACKET statement RBRACKET { $$ = new WhileStmt; printf("while statement\n"); }
+while_stmt: WHILE LPAREN expr RPAREN LBRACKET block RBRACKET { $$ = new WhileStmt($3, $6); printf("while statement\n"); }
           ;
 
 // switch语句
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACKET case_list RBRACKET { $$ = new SwitchStmt; printf("switch statement\n"); }
 	   ;
 // for语句
-for_stmt: FOR LPAREN decl_stmt ';' expr ';' assign_stmt RPAREN LBRACKET statement RBRACKET { $$ = new ForStmt; printf("for statement\n"); }
+for_stmt: FOR LPAREN decl_stmt ';' expr ';' assign_stmt RPAREN LBRACKET block RBRACKET { $$ = new ForStmt($3, $5, $7, $10); printf("for statement\n"); }
 
 // call语句
-call_stmt: IDENTITY LPAREN expr_list RPAREN { $$ = new CallStmt; printf("call %s\n", $1); }
+call_stmt: IDENTITY LPAREN expr_list RPAREN { $$ = new CallStmt($1, $3->GetExprList()); printf("call %s\n", $1); }
 
 // 调用时的形参列表
-expr_list: expr
-         | expr ',' expr_list 
+expr_list: expr { $$ = new ExprList; }
+         | expr_list ',' expr { $1->Append($3); }
 	 |
 	 ;
 
 // switch语句中的case list
-case_list: CASE factor ':' statement	 { printf("case list\n"); }
-	 | CASE factor ':' statement case_list    { printf("case list\n"); }
+case_list: CASE factor ':' block	 { printf("case list\n"); }
+	 | CASE factor ':' block case_list    { printf("case list\n"); }
          |
          ;
 
-// 标识符list
-id_list: IDENTITY           { printf("iden: %s\n", $1);  }
-    | IDENTITY ',' id_list { printf("iden: %s\n", $1);  }
-    | assign_stmt 
-    | assign_stmt ',' id_list
+// 变量声明时标识符list
+id_list: IDENTITY           { $$ = new IdList; $$->Append(Variable("", $1)); printf("iden: %s\n", $1);  }
+    | id_list ',' IDENTITY { $1->Append(Variable("", $3)); printf("iden: %s\n", $3);  }
+    | assign_stmt { $$ = new IdList; $$->Append(Variable("", $1->GetName(), $1->GetVal())); }
+    | id_list ',' assign_stmt { $1->Append(Variable("", $3->GetName(), $3->GetVal())); }
     ;
 
 // 赋值语句
-assign_stmt: IDENTITY ASSIGN expr    { $$ = new AssignStmt; printf("id: %s\n assignment\n", $1); }
+assign_stmt: IDENTITY ASSIGN expr    { $$ = new AssignStmt($1, $3); printf("id: %s\n assignment\n", $1); }
     ;
 
 // return语句
@@ -189,20 +223,20 @@ obj_member: IDENTITY '.' IDENTITY { printf("obj: %s mem: %s\n", $1, $3); }
 obj_call: IDENTITY '.' call_stmt { printf("obj: %s\n", $1); }
 
 // 表达式
-expr: LPAREN expr RPAREN { $$ = new Expr; }
-    | factor    { $$ = new Expr; }
-    | bin_expr  { $$ = new Expr; }
-    | single_expr { $$ = new Expr; }
-    | STRING 	{ $$ = new Expr; printf("string const: %s\n", $1); }
+expr: LPAREN expr RPAREN { $$ = $2; }
+    | factor    { $$ = $1; }
+    | bin_expr  { $$ = $1; }
+    | single_expr { $$ = $1; }
     ;
 
 // 表达式中的factor，为常量或者标识符
 factor: INT_NUMBER      { printf("int const: %d\n", $1); }
     | FLOAT_NUMBER      { printf("float const: %d\n", $1); }
-    | call_stmt   
+    | call_stmt   	{ $$ = $1; }
     | IDENTITY          { printf("iden factor: %s\n", $1); }
     | obj_member
     | obj_call
+    | STRING { printf("string const: %s\n", $1); }
     ;
 
 // 二元表达式
@@ -226,14 +260,14 @@ single_expr: '!' expr { printf("not expr\n"); }
 	  ;
 
 // 符号类型
-type_dec: INT       { printf("type: int\n"); }
-    | DOUBLE	    { printf("type: double\n"); }
-    | FLOAT         { printf("type: float\n"); }
-    | SHORT         { printf("type: short\n"); }
-    | LONG          { printf("type: long\n"); }
-    | UNSIGNED LONG { printf("type: unsigned\n"); }
-    | VOID	    { printf("type: void\n"); }
-    | IDENTITY      { printf("type: class\n"); }
+type_dec: INT       { printf("type: int\n"); $$ = "int"; }
+    | DOUBLE	    { printf("type: double\n"); $$ = "double"; }
+    | FLOAT         { printf("type: float\n");  $$ = "float"; }
+    | SHORT         { printf("type: short\n"); $$ = "short"; }
+    | LONG          { printf("type: long\n"); $$ = "long"; }
+    | UNSIGNED LONG { printf("type: unsigned\n"); $$ = "unsigned long"; }
+    | VOID	    { printf("type: void\n"); $$ = "void"; }
+    //| IDENTITY      { printf("type: class\n"); $$ = IDENTITY; }
     ;
 
 
@@ -257,7 +291,7 @@ int main(int argc, const char *args[])
 	}
 
 	printf("\n\n");
-	prog->cgen();
+	prog->Cgen();
     return 0;
 }
 

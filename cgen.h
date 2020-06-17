@@ -11,26 +11,24 @@
 
 class Beg;
 class Expr;
+class Block;
 
 
 class ASTNode {
 public:
-    virtual void *cgen() = 0;
+    virtual void *Cgen() = 0;
 };
 
 // 程序节点，AST的根节点
 class Program : public ASTNode {
 public:
-    Program();
-    void Append(ASTNode *b) {
-        begs_.push_back(b);
+    Program() {
+        std::cout << "Program create" << std::endl;
     }
 
-    void *cgen() {
-        for (int i = 0; i < begs_.size(); i++) {
-            begs_[i]->cgen();
-        }
-    }
+    void Append(ASTNode *b);
+
+    void *Cgen();
 
 private:
     std::vector<ASTNode*> begs_;
@@ -48,6 +46,8 @@ private:
 // 变量定义节点
 class VariableDef {
 public:
+    VariableDef() {}
+    VariableDef(std::string type, std::string name) : type_(type), name_(name) {}
     std::string type_;
     std::string name_;
 };
@@ -55,90 +55,108 @@ public:
 // 变量节点
 class Variable {
 public:
+    Variable() {}
+    Variable(std::string type, std::string name, Expr *init_val = NULL) : type_(type), name_(name), init_val_(init_val) {}
     std::string type_;
     std::string name_;
-    int int_val_;
-    float float_val_;
+    Expr *init_val_;
+};
+
+// 形参列表
+class ArgsList {
+public:
+    void Append(VariableDef arg);
+    std::vector<VariableDef> args_;
+};
+
+// iden列表，用于声明，不包含类型，初值可选
+class IdList {
+public:
+    IdList() {}
+
+    void Append(Variable var) {
+        ids_.push_back(var);
+    }
+
+    std::vector<Variable> GetIds() { return ids_; }
+
+private:
+    std::vector<Variable> ids_;
 };
 
 // 类节点
 class Class : public ASTNode {
-private:
-    std::vector<VariableDef> member_varibles_;
-
 public:
-    void *cgen() {
-        std::cout << "class def" << std::endl;
-        return NULL;
-    }
+    Class(std::string name, ArgsList *memeber_list) : name_(name), member_varibles_(memeber_list) {}
+    void *Cgen();
+
+private:
+    std::string name_;
+    ArgsList *member_varibles_;
 };
 
 // 语句节点，作为AST一个类别汇总
 class Sentence : public ASTNode {
 public:
-    void *cgen() {
-        std::cout << "NULL Sentence" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 };
 
 // 声明语句
 class DeclStmt : public Sentence {
 public:
     // 添加声明的变量
-    void AppendVariable(std::string type, std::string name, int val) {
-        Variable tmp;
-        tmp.type_ = type;
-        tmp.name_ = name;
-        tmp.int_val_ = val;
-        vars_.push_back(tmp);
-    }
+    DeclStmt() {}
+    DeclStmt(const std::vector<Variable> &vars) : vars_(vars) {}
+    void Append(std::string type, std::string name, Expr *init_val);
+    // 设置vars_中的所有变量的类型为type
+    void SetTypeForAllVariables(std::string type);
+    void *Cgen();
+    std::vector<Variable> GetVars();
 
-    void *cgen() {
-        // TODO
-        std::cout << "decl_stmt" << std::endl;
-        return NULL;
-    }
 private:
     std::vector<Variable> vars_;
 };
 
 // 赋值语句
-class AssignStmt : public  Sentence {
+class AssignStmt : public Sentence {
 public:
     AssignStmt() {}
-    AssignStmt(std::string var_name, int assign_val_) {
+    AssignStmt(std::string var_name, Expr *assign_expr) {
         var_name_ = var_name;
-        assign_val_ = assign_val_;
+        assign_expr_ = assign_expr;
     }
 
-    void *cgen() {
-        std::cout << "assign_stmt" << std::endl;
-        return NULL;
-    }
+    std::string GetName() { return var_name_; }
+    Expr *GetVal() { return assign_expr_; }
+
+    void *Cgen();
 
 private:
     std::string var_name_;
-    int assign_val_;
+    Expr *assign_expr_;
 };
 
 // 条件语句
 class IfStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "if_stmt" << std::endl;
-        return NULL;
-    }
+    IfStmt() : true_block_(NULL), false_block_(NULL), bool_expr_(NULL) {}
+
+    void SetTrueBlock(Block *true_block);
+    void SetFalseBlock(Block *false_block);
+    void SetBoolExpr(Expr *bool_expr);
+
+    void *Cgen();
+
 private:
+    Expr *bool_expr_;
+    Block *true_block_;
+    Block *false_block_;
 };
 
 // 返回语句
 class ReturnStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "return_stmt" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 
 private:
     Expr *expr_;
@@ -147,10 +165,7 @@ private:
 // Break语句
 class BreakStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "break_stmt" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 
 private:
 };
@@ -158,42 +173,41 @@ private:
 // While语句
 class WhileStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "while_stmt" << std::endl;
-        return NULL;
-    }
+    WhileStmt(Expr *bool_expr, Block *block) : bool_expr_(bool_expr), block_(block) {}
+    void *Cgen();
 
 private:
+    Expr *bool_expr_;
+    Block *block_;
 };
 
 // For语句
 class ForStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "for_stmt" << std::endl;
-        return NULL;
-    }
+    ForStmt(DeclStmt *init_sentence, Expr *bool_expr, AssignStmt *after_sentence, Block *loop_block) :
+        init_sentence_(init_sentence), bool_expr_(bool_expr), after_sentence_(after_sentence),
+        loop_block_(loop_block) {}
+
+    void *Cgen();
 
 private:
+    DeclStmt *init_sentence_;
+    Expr *bool_expr_;
+    AssignStmt *after_sentence_;
+    Block *loop_block_;
 };
 
 // Switch语句
 class SwitchStmt : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "switch_stmt" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 private:
 };
 
 // 表达式语句
 class Expr : public Sentence {
 public:
-    void *cgen() {
-        std::cout << "Expr" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 private:
 };
 
@@ -205,10 +219,8 @@ private:
 // 二元运算表达式
 class BinExpr : public Expr {
 public:
-    void *cgen() {
-        std::cout << "bin_expr" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
+
 private:
     int op_;
     Expr *expr1_;
@@ -218,10 +230,7 @@ private:
 // 一元运算表达式
 class SingleExpr : public Expr {
 public:
-    void *cgen() {
-        std::cout << "single_expr" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 private:
     int op_;
     Expr *expr_;
@@ -251,10 +260,11 @@ private:
 // 普通函数调用
 class CallStmt : public Factor {
 public:
-    void *cgen() {
-        std::cout << "call_stmt" << std::endl;
-        return NULL;
-    }
+    CallStmt() {}
+    CallStmt(std::string func_name, const std::vector<Expr*> vals) :
+        func_name_(func_name), vals_(vals) {}
+
+    void *Cgen();
 
 private:
     std::string func_name_;
@@ -264,10 +274,7 @@ private:
 // 普通变量
 class Identity : public Factor {
 public:
-    void *cgen() {
-        std::cout << "identity" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 
 private:
     std::string var_name_;
@@ -276,10 +283,7 @@ private:
 // 类成员变量
 class ObjMember : public Factor {
 public:
-    void *cgen() {
-        std::cout << "obj_member" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 
 private:
     std::string var_name_;
@@ -289,31 +293,18 @@ private:
 // 类函数调用
 class ObjCall : public Factor {
 public:
-    void *cgen() {
-        std::cout << "obj_call" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 private:
     std::string obj_name_;
     CallStmt *call_stmt_;
 };
 
-
-
 // 函数体展开
-class Statement : public ASTNode {
+class Block : public ASTNode {
 public:
-    void Append(Sentence *s) {
-        sentence_.push_back(s);
-    }
+    void Append(Sentence *s);
 
-    void *cgen() {
-        std::cout << "Statements" << std::endl;
-        for (int i = 0; i < sentence_.size(); i++) {
-            sentence_[i]->cgen();
-        }
-        return NULL;
-    }
+    void *Cgen();
 
 private:
     std::vector<Sentence*> sentence_;
@@ -322,24 +313,33 @@ private:
 // 函数节点
 class Function : public ASTNode {
 public:
-    Function(std::string name) {
+    Function(std::string return_type, std::string name, ArgsList *args, Block *block) {
         // TODO: 成员初始化
+        return_type_ = return_type;
         func_name_ = name;
+        args_ = args;
+        block_ = block;
     }
 
-    void *cgen() {
-        // TODO
-        std::cout << "function" << std::endl;
-        return NULL;
-    }
+    void *Cgen();
 
 private:
-    std::string return_type_;
-    std::string func_name_;
-    std::vector<VariableDef> args_;
+    std::string return_type_;   // 函数返回类型
+    std::string func_name_; // 函数名字
+    ArgsList *args_; // 形参列表
+    Block *block_;  // 函数体
 };
 
+// 实参list
+class ExprList {
+public:
+    ExprList() {}
+    void Append(Expr *expr) { expr_list_.push_back(expr); }
+    std::vector<Expr*> GetExprList() { return expr_list_; }
 
+private:
+    std::vector<Expr*> expr_list_;
+};
 
 
 #endif //LAB2_CGEN_H
