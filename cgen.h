@@ -216,20 +216,44 @@ public:
 private:
 };
 
+enum BinOp {
+    add_op,
+    sub_op,
+    mul_op,
+    div_op,
+    mod_op,
+    eq_op,
+    less_op,
+    lesseq_op,
+    greater_op,
+    greatereq_op,
+    and_op,
+    or_op
+};
+
 // 二元运算表达式
 class BinExpr : public Expr {
 public:
+    BinExpr(BinOp op, Expr *expr1, Expr *expr2) :
+        op_(op), expr1_(expr1), expr2_(expr2) {}
+
     void *Cgen();
 
 private:
-    int op_;
+    BinOp op_;
     Expr *expr1_;
     Expr *expr2_;
+};
+
+enum SingleOp {
+    not_op,
+    neg_op
 };
 
 // 一元运算表达式
 class SingleExpr : public Expr {
 public:
+    SingleExpr(SingleOp op, Expr *expr) : op_(op), expr_(expr) {}
     void *Cgen();
 private:
     int op_;
@@ -246,6 +270,9 @@ private:
 // 整型常量
 class IntConst : public Factor {
 public:
+    IntConst(int val) : int_val_(val) {}
+    void *Cgen();
+
 private:
     int int_val_;
 };
@@ -253,8 +280,21 @@ private:
 // 浮点数常量
 class FloatConst : public Factor {
 public:
+    FloatConst(float val) : float_val_(val) {}
+    void *Cgen();
+
 private:
     float float_val_;
+};
+
+// expr中的变量
+class Identity : public Factor {
+public:
+    Identity(const std::string &name) : name_(name) {}
+    void *Cgen();
+
+private:
+    std::string name_;
 };
 
 // 普通函数调用
@@ -269,15 +309,6 @@ public:
 private:
     std::string func_name_;
     std::vector<Expr*> vals_;
-};
-
-// 普通变量
-class Identity : public Factor {
-public:
-    void *Cgen();
-
-private:
-    std::string var_name_;
 };
 
 // 类成员变量

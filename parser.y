@@ -230,33 +230,33 @@ expr: LPAREN expr RPAREN { $$ = $2; }
     ;
 
 // 表达式中的factor，为常量或者标识符
-factor: INT_NUMBER      { printf("int const: %d\n", $1); }
-    | FLOAT_NUMBER      { printf("float const: %d\n", $1); }
+factor: INT_NUMBER      { $$ = new IntConst($1); printf("int const: %d\n", $1); }
+    | FLOAT_NUMBER      { $$ = new FloatConst($1); printf("float const: %d\n", $1); }
     | call_stmt   	{ $$ = $1; }
-    | IDENTITY          { printf("iden factor: %s\n", $1); }
+    | IDENTITY          { $$ = new Identity($1); printf("iden factor: %s\n", $1); }
     | obj_member
     | obj_call
     | STRING { printf("string const: %s\n", $1); }
     ;
 
 // 二元表达式
-bin_expr: expr '+' expr     { printf("+\n"); }
-    | expr '-' expr         { printf("-\n"); }
-    | expr '*' expr         { printf("*\n"); }
-    | expr '/' expr         { printf("/\n"); }
-    | expr '%' expr	    { printf("%\n"); }
-    | expr EQUAL expr	    { printf("==\n"); }
-    | expr LESS expr	    { printf("<\n"); }
-    | expr LESS_E expr	    { printf("<=\n"); }
-    | expr GREATER expr	    { printf(">\n"); }
-    | expr GREATER_E expr   { printf(">=\n"); }
-    | expr AND expr	    { printf("&&\n"); }
-    | expr OR expr 	    { printf("||\n"); }
+bin_expr: expr '+' expr     { $$ = new BinExpr(add_op, $1, $3); printf("+\n"); }
+    | expr '-' expr         { $$ = new BinExpr(sub_op, $1, $3); printf("-\n"); }
+    | expr '*' expr         { $$ = new BinExpr(mul_op, $1, $3); printf("*\n"); }
+    | expr '/' expr         { $$ = new BinExpr(div_op, $1, $3); printf("/\n"); }
+    | expr '%' expr	    { $$ = new BinExpr(mod_op, $1, $3); printf("%\n"); }
+    | expr EQUAL expr	    { $$ = new BinExpr(eq_op, $1, $3); printf("==\n"); }
+    | expr LESS expr	    { $$ = new BinExpr(less_op, $1, $3); printf("<\n"); }
+    | expr LESS_E expr	    { $$ = new BinExpr(lesseq_op, $1, $3); printf("<=\n"); }
+    | expr GREATER expr	    { $$ = new BinExpr(greater_op, $1, $3); printf(">\n"); }
+    | expr GREATER_E expr   { $$ = new BinExpr(greatereq_op, $1, $3); printf(">=\n"); }
+    | expr AND expr	    { $$ = new BinExpr(and_op, $1, $3); printf("&&\n"); }
+    | expr OR expr 	    { $$ = new BinExpr(or_op, $1, $3); printf("||\n"); }
     ;
 
 // 一元表达式
-single_expr: '!' expr { printf("not expr\n"); }
-	  | '~' expr { printf("neg expr\n"); }
+single_expr: '!' expr { $$ = new SingleExpr(not_op, $2); printf("not expr\n"); }
+	  | '~' expr { $$ = new SingleExpr(neg_op, $2); printf("neg expr\n"); }
 	  ;
 
 // 符号类型

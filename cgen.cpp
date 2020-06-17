@@ -52,7 +52,12 @@ void *DeclStmt::Cgen() {
     // TODO
     std::cout << "decl_stmt" << std::endl;
     for (int i = 0; i < vars_.size(); i++) {
-        std::cout << "type: " << vars_[i].type_ << " name: " << vars_[i].name_ << std::endl;
+        std::cout << "type: " << vars_[i].type_ << " name: " << vars_[i].name_
+            << " init_expr: " << std::endl;
+        if (vars_[i].init_val_)
+            vars_[i].init_val_->Cgen();
+        else
+            std::cout << "null expr" << std::endl;
     }
     return NULL;
 }
@@ -155,12 +160,69 @@ void *Expr::Cgen() {
 
 void *BinExpr::Cgen() {
     std::cout << "bin_expr" << std::endl;
+    switch (op_) {
+        case add_op:
+            std::cout << "op: add" << std::endl;
+            break;
+        case sub_op:
+            std::cout << "op: sub" << std::endl;
+            break;
+        case mul_op:
+            std::cout << "op: mul" << std::endl;
+            break;
+        case div_op:
+            std::cout << "op: div" << std::endl;
+            break;
+        case mod_op:
+            std::cout << "op: mod" << std::endl;
+            break;
+        case eq_op:
+            std::cout << "op: eq" << std::endl;
+            break;
+        case less_op:
+            std::cout << "op: less" << std::endl;
+            break;
+        case lesseq_op:
+            std::cout << "op: lesseq" << std::endl;
+            break;
+        case greater_op:
+            std::cout << "op: greater" << std::endl;
+            break;
+        case greatereq_op:
+            std::cout << "op: greatereq" << std::endl;
+            break;
+        case and_op:
+            std::cout << "op: and" << std::endl;
+            break;
+        case or_op:
+            std::cout << "op: or" << std::endl;
+            break;
+        default:
+            std::cout << "false op" << std::endl;
+    }
+    std::cout << "expr1: " << std::endl;
+    expr1_->Cgen();
+    std::cout << "expr2: " << std::endl;
+    expr2_->Cgen();
+
     return NULL;
 }
 
 // 一元运算表达式
 void *SingleExpr::Cgen() {
     std::cout << "single_expr" << std::endl;
+    switch (op_) {
+        case not_op:
+            std::cout << "op: not" << std::endl;
+            break;
+        case neg_op:
+            std::cout << "op: neg" << std::endl;
+            break;
+        default:
+            std::cout << "false op" << std::endl;
+    }
+    std::cout << "expr" << std::endl;
+    expr_->Cgen();
     return NULL;
 }
 
@@ -173,7 +235,7 @@ void *CallStmt::Cgen() {
 
 // 普通变量
 void *Identity::Cgen() {
-    std::cout << "identity" << std::endl;
+    std::cout << "Identity: " << name_ << std::endl;
     return NULL;
 }
 
@@ -220,4 +282,14 @@ void *Function::Cgen() {
 
 void ArgsList::Append(VariableDef arg) {
     args_.push_back(arg);
+}
+
+void *IntConst::Cgen() {
+    std::cout << "IntConst: " << int_val_ <<std::endl;
+    return NULL;
+}
+
+void *FloatConst::Cgen() {
+    std::cout << "FloatConst: " << float_val_ <<std::endl;
+    return NULL;
 }
