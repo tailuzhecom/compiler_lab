@@ -1,8 +1,15 @@
-int main(int a, int b) { 
- int c = 1, d;
- if (a) {
-      a = c;
-    } else {
-      b = d;
-    };
+int main() {
+    int a = 1, b = 2;
+    a * b;
+    a + b;
+    a - b;
+    a / b;
+    a % b;
+    a == b;
+    a <= b;
+    a >= b;
+    a < b;
+    a > b;
+    !a;
+    ~a;
 }

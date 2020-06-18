@@ -169,26 +169,66 @@ Value *BreakStmt::Cgen() {
 
 // While语句
 Value *WhileStmt::Cgen() {
-    std::cout << "while_stmt" << std::endl;
-    std::cout << "bool expr: " << std::endl;
-    bool_expr_->Cgen();
-    std::cout << "block: " << std::endl;
-    block_->Cgen();
+    Function *curr_func = Builder.GetInsertBlock()->getParent();
+
+	// condition block
+	BasicBlock *cond_block = BasicBlock::Create(TheContext, "cond", curr_func);
+	BasicBlock *body_block = BasicBlock::Create(TheContext, "body", curr_func);
+	BasicBlock *end_block = BasicBlock::Create(TheContext, "", curr_func);
+	Builder.CreateBr(cond_block);    // br cond;
+
+	// codition block
+	Builder.SetInsertPoint(cond_block);
+	Value *cond_res = bool_expr_->Cgen(); // 条件值
+	Builder.CreateCondBr(cond_res, body_block, end_block);
+
+	// while body
+	Builder.SetInsertPoint(body_block);
+
+	symbol_table.Enterscope();
+	block_->Cgen();
+	symbol_table.Exitscope();
+
+	Builder.CreateBr(cond_block);
+
+	// end body
+	Builder.SetInsertPoint(end_block);
+
     return NULL;
 }
 
 // For语句
 Value *ForStmt::Cgen() {
-    std::cout << "for_stmt" << std::endl;
+    symbol_table.Enterscope();
+
+    Function *curr_func = Builder.GetInsertBlock()->getParent();
+    // 初始化语句
     if (init_sentence_)
-    std::cout << "init sentence:" << std::endl;
-    init_sentence_->Cgen();
-    std::cout << "bool expr:" << std::endl;
-    bool_expr_->Cgen();
-    std::cout << "after sentence" << std::endl;
-    after_sentence_->Cgen();
-    std::cout << "loop block:" << std::endl;
+        init_sentence_->Cgen();
+
+    // condition block
+    BasicBlock *cond_block = BasicBlock::Create(TheContext, "cond", curr_func);
+    BasicBlock *body_block = BasicBlock::Create(TheContext, "body", curr_func);
+    BasicBlock *end_block = BasicBlock::Create(TheContext, "", curr_func);
+    Builder.CreateBr(cond_block);    // br cond;
+
+    // codition block
+    Builder.SetInsertPoint(cond_block);
+    Value *cond_res = bool_expr_->Cgen(); // 条件值
+    Builder.CreateCondBr(cond_res, body_block, end_block);
+
+    // for body
+    Builder.SetInsertPoint(body_block);
+    symbol_table.Enterscope();
     loop_block_->Cgen();
+    symbol_table.Exitscope();
+
+    after_sentence_->Cgen(); // 执行完body后的处理语句
+    Builder.CreateBr(cond_block);
+
+    // end body
+    Builder.SetInsertPoint(end_block);
+    symbol_table.Exitscope();
     return NULL;
 }
 
@@ -211,48 +251,49 @@ Value *BinExpr::Cgen() {
     std::cout << "bin_expr" << std::endl;
     switch (op_) {
         case add_op:
-            std::cout << "op: add" << std::endl;
+            return Builder.CreateAdd(expr1_->Cgen(), expr2_->Cgen());
             break;
         case sub_op:
-            std::cout << "op: sub" << std::endl;
+            return Builder.CreateSub(expr1_->Cgen(), expr2_->Cgen());
             break;
         case mul_op:
+            return Builder.CreateMul(expr1_->Cgen(), expr2_->Cgen());
             std::cout << "op: mul" << std::endl;
             break;
         case div_op:
-            std::cout << "op: div" << std::endl;
+            return Builder.CreateFDiv(expr1_->Cgen(), expr2_->Cgen());
             break;
         case mod_op:
-            std::cout << "op: mod" << std::endl;
+            // TODO
+            return Builder.CreateFDiv(expr1_->Cgen(), expr2_->Cgen());
             break;
         case eq_op:
-            std::cout << "op: eq" << std::endl;
+            return Builder.CreateICmpEQ(expr1_->Cgen(), expr2_->Cgen());
+            break;
+        case neq_op:
+            return Builder.CreateICmpNE(expr1_->Cgen(), expr2_->Cgen());
             break;
         case less_op:
-            std::cout << "op: less" << std::endl;
+            return Builder.CreateICmpSLT(expr1_->Cgen(), expr2_->Cgen());
             break;
         case lesseq_op:
-            std::cout << "op: lesseq" << std::endl;
+            return Builder.CreateICmpSLE(expr1_->Cgen(), expr2_->Cgen());
             break;
         case greater_op:
-            std::cout << "op: greater" << std::endl;
+            Builder.CreateICmpSGT(expr1_->Cgen(), expr2_->Cgen());
             break;
         case greatereq_op:
-            std::cout << "op: greatereq" << std::endl;
+            Builder.CreateICmpSGE(expr1_->Cgen(), expr2_->Cgen());
             break;
         case and_op:
-            std::cout << "op: and" << std::endl;
+            Builder.CreateAnd(expr1_->Cgen(), expr2_->Cgen());
             break;
         case or_op:
-            std::cout << "op: or" << std::endl;
+            Builder.CreateOr(expr1_->Cgen(), expr2_->Cgen());
             break;
         default:
             std::cout << "false op" << std::endl;
     }
-    std::cout << "expr1: " << std::endl;
-    expr1_->Cgen();
-    std::cout << "expr2: " << std::endl;
-    expr2_->Cgen();
 
     return NULL;
 }
@@ -262,16 +303,14 @@ Value *SingleExpr::Cgen() {
     std::cout << "single_expr" << std::endl;
     switch (op_) {
         case not_op:
-            std::cout << "op: not" << std::endl;
+            return Builder.CreateNot(expr_->Cgen());
             break;
         case neg_op:
-            std::cout << "op: neg" << std::endl;
+            return Builder.CreateNeg(expr_->Cgen());
             break;
         default:
             std::cout << "false op" << std::endl;
     }
-    std::cout << "expr" << std::endl;
-    expr_->Cgen();
     return NULL;
 }
 
@@ -352,8 +391,8 @@ Value *Func::Cgen() {
     Builder.SetInsertPoint(entry_block);
 
     for (auto &arg : func->args()) {
-        arg.setName(args_->args_[idx].name_); // 设置形参名字
-        Value *arg_ptr = Builder.CreateAlloca(args_type_list[idx], nullptr, "");
+        // arg.setName(args_->args_[idx].name_); // 设置形参名字
+        Value *arg_ptr = Builder.CreateAlloca(args_type_list[idx], nullptr, args_->args_[idx].name_); // 为形参创建变量
         Builder.CreateStore(&arg, arg_ptr);
         symbol_table.AddItem(args_->args_[idx].name_, arg_ptr); // 添加形参到符号表
         idx++;
@@ -371,12 +410,12 @@ void ArgsList::Append(VariableDef arg) {
 
 Value *IntConst::Cgen() {
     std::cout << "IntConst: " << int_val_ <<std::endl;
-    return NULL;
+    return ConstantInt::get(TheContext, APInt(32, int_val_));
 }
 
 Value *FloatConst::Cgen() {
     std::cout << "FloatConst: " << float_val_ <<std::endl;
-    return NULL;
+    return ConstantFP::get(TheContext, APFloat(float_val_));
 }
 
 

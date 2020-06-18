@@ -249,6 +249,7 @@ enum BinOp {
     div_op,
     mod_op,
     eq_op,
+    neq_op,
     less_op,
     lesseq_op,
     greater_op,
