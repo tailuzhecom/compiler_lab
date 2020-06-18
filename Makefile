@@ -24,5 +24,7 @@ scanner.o: scanner.cpp parser.tab.h
 clean:
 	-@ rm parser.tab.cpp parser.tab.hpp scanner.cpp  scanner.o parser.tab.o cgen.o test
 
+ast: parser.tab.cpp parser.tab.h scanner.cpp
+
 run:
-	cat ./input.txt | ./test
+	cat ./input.txt | cmake-build-debug/test

@@ -9,14 +9,38 @@
 #include <vector>
 #include <string>
 
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/ADT/APFloat.h"
+
+using namespace llvm;
+
 class Beg;
 class Expr;
 class Block;
 
+// 符号表
+class SymboTable {
+public:
+    void Enterscope(); // 进入作用域
+    void Exitscope(); // 退出作用域
+    void AddItem(const std::string &name, Value* val); // 添加变量
+    Value* Lookup(const std::string &name); // 在所有范围查找变量
+    Value* Probe(const std::string &name); // 在最新的作用查找变量
+    void clear();
+
+private:
+    std::vector<std::map<std::string, Value*> > table_;
+};
 
 class ASTNode {
 public:
-    virtual void *Cgen() = 0;
+    virtual Value *Cgen() = 0;
 };
 
 // 程序节点，AST的根节点
@@ -24,11 +48,13 @@ class Program : public ASTNode {
 public:
     Program() {
         std::cout << "Program create" << std::endl;
+        Init();
     }
 
+    void Init();
     void Append(ASTNode *b);
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::vector<ASTNode*> begs_;
@@ -88,7 +114,7 @@ private:
 class Class : public ASTNode {
 public:
     Class(std::string name, ArgsList *memeber_list) : name_(name), member_varibles_(memeber_list) {}
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string name_;
@@ -98,7 +124,7 @@ private:
 // 语句节点，作为AST一个类别汇总
 class Sentence : public ASTNode {
 public:
-    void *Cgen();
+    Value *Cgen();
 };
 
 // 声明语句
@@ -110,7 +136,7 @@ public:
     void Append(std::string type, std::string name, Expr *init_val);
     // 设置vars_中的所有变量的类型为type
     void SetTypeForAllVariables(std::string type);
-    void *Cgen();
+    Value *Cgen();
     std::vector<Variable> GetVars();
 
 private:
@@ -129,7 +155,7 @@ public:
     std::string GetName() { return var_name_; }
     Expr *GetVal() { return assign_expr_; }
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string var_name_;
@@ -145,7 +171,7 @@ public:
     void SetFalseBlock(Block *false_block);
     void SetBoolExpr(Expr *bool_expr);
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     Expr *bool_expr_;
@@ -156,7 +182,7 @@ private:
 // 返回语句
 class ReturnStmt : public Sentence {
 public:
-    void *Cgen();
+    Value *Cgen();
 
 private:
     Expr *expr_;
@@ -165,7 +191,7 @@ private:
 // Break语句
 class BreakStmt : public Sentence {
 public:
-    void *Cgen();
+    Value *Cgen();
 
 private:
 };
@@ -174,7 +200,7 @@ private:
 class WhileStmt : public Sentence {
 public:
     WhileStmt(Expr *bool_expr, Block *block) : bool_expr_(bool_expr), block_(block) {}
-    void *Cgen();
+    Value *Cgen();
 
 private:
     Expr *bool_expr_;
@@ -188,7 +214,7 @@ public:
         init_sentence_(init_sentence), bool_expr_(bool_expr), after_sentence_(after_sentence),
         loop_block_(loop_block) {}
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     DeclStmt *init_sentence_;
@@ -200,14 +226,14 @@ private:
 // Switch语句
 class SwitchStmt : public Sentence {
 public:
-    void *Cgen();
+    Value *Cgen();
 private:
 };
 
 // 表达式语句
 class Expr : public Sentence {
 public:
-    void *Cgen();
+    Value *Cgen();
 private:
 };
 
@@ -237,7 +263,7 @@ public:
     BinExpr(BinOp op, Expr *expr1, Expr *expr2) :
         op_(op), expr1_(expr1), expr2_(expr2) {}
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     BinOp op_;
@@ -254,7 +280,7 @@ enum SingleOp {
 class SingleExpr : public Expr {
 public:
     SingleExpr(SingleOp op, Expr *expr) : op_(op), expr_(expr) {}
-    void *Cgen();
+    Value *Cgen();
 private:
     int op_;
     Expr *expr_;
@@ -271,7 +297,7 @@ private:
 class IntConst : public Factor {
 public:
     IntConst(int val) : int_val_(val) {}
-    void *Cgen();
+    Value *Cgen();
 
 private:
     int int_val_;
@@ -281,7 +307,7 @@ private:
 class FloatConst : public Factor {
 public:
     FloatConst(float val) : float_val_(val) {}
-    void *Cgen();
+    Value *Cgen();
 
 private:
     float float_val_;
@@ -291,7 +317,7 @@ private:
 class Identity : public Factor {
 public:
     Identity(const std::string &name) : name_(name) {}
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string name_;
@@ -304,7 +330,7 @@ public:
     CallStmt(std::string func_name, const std::vector<Expr*> vals) :
         func_name_(func_name), vals_(vals) {}
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string func_name_;
@@ -314,7 +340,7 @@ private:
 // 类成员变量
 class ObjMember : public Factor {
 public:
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string var_name_;
@@ -324,7 +350,7 @@ private:
 // 类函数调用
 class ObjCall : public Factor {
 public:
-    void *Cgen();
+    Value *Cgen();
 private:
     std::string obj_name_;
     CallStmt *call_stmt_;
@@ -335,16 +361,16 @@ class Block : public ASTNode {
 public:
     void Append(Sentence *s);
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::vector<Sentence*> sentence_;
 };
 
 // 函数节点
-class Function : public ASTNode {
+class Func : public ASTNode {
 public:
-    Function(std::string return_type, std::string name, ArgsList *args, Block *block) {
+    Func(std::string return_type, std::string name, ArgsList *args, Block *block) {
         // TODO: 成员初始化
         return_type_ = return_type;
         func_name_ = name;
@@ -352,7 +378,7 @@ public:
         block_ = block;
     }
 
-    void *Cgen();
+    Value *Cgen();
 
 private:
     std::string return_type_;   // 函数返回类型
@@ -372,5 +398,14 @@ private:
     std::vector<Expr*> expr_list_;
 };
 
+
+
+
+/////////////////////////////////////
+// util function
+/////////////////////////////////////
+
+// 将string转换为llvm::Type*
+Type* UtilConvertStrToType(const std::string &type_str);
 
 #endif //LAB2_CGEN_H

@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/lab2.dir/cgen.cpp.o"
+  "CMakeFiles/lab2.dir/parser.tab.cpp.o"
+  "CMakeFiles/lab2.dir/scanner.cpp.o"
   "lab2"
   "lab2.pdb"
 )

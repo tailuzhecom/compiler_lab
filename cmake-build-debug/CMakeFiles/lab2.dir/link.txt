@@ -1,1 +1,1 @@
-/usr/bin/c++  -g   CMakeFiles/lab2.dir/cgen.cpp.o  -o lab2 
+/usr/bin/c++  -g   CMakeFiles/lab2.dir/cgen.cpp.o CMakeFiles/lab2.dir/parser.tab.cpp.o CMakeFiles/lab2.dir/scanner.cpp.o  -o lab2 /usr/lib/llvm-6.0/lib/libLLVMCore.a /usr/lib/llvm-6.0/lib/libLLVMSupport.a /usr/lib/llvm-6.0/lib/libLLVMBinaryFormat.a /usr/lib/llvm-6.0/lib/libLLVMSupport.a -lz -lrt -ldl -ltinfo -lpthread -lm /usr/lib/llvm-6.0/lib/libLLVMDemangle.a 

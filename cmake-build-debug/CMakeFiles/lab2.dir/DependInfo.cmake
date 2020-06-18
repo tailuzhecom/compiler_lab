@@ -5,6 +5,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
   "/home/young/文档/编译工程/lab/lab2/cgen.cpp" "/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/lab2.dir/cgen.cpp.o"
+  "/home/young/文档/编译工程/lab/lab2/parser.tab.cpp" "/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/lab2.dir/parser.tab.cpp.o"
+  "/home/young/文档/编译工程/lab/lab2/scanner.cpp" "/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/lab2.dir/scanner.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

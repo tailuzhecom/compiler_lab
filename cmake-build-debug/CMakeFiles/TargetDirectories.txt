@@ -1,3 +1,4 @@
 /home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/lab2.dir
 /home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/intrinsics_gen.dir
+/home/young/文档/编译工程/lab/lab2/cmake-build-debug/CMakeFiles/test.dir

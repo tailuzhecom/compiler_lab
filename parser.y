@@ -112,7 +112,7 @@ beg: func { prog->Append($1); }
 
 /* 语法规则 */
 //函数定义
-func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET block RBRACKET { $$ = new Function($1, $2, $4, $7); }
+func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET block RBRACKET { $$ = new Func($1, $2, $4, $7); }
     ;
 
 // 函数定义时所使用的形参

@@ -5,7 +5,7 @@
 		<Option title="lab2"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\lib\;CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\;CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\cmake\;CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\;CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\cmake\llvm\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
@@ -27,54 +27,6 @@
 					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="lab2">
-				<Option output="/home/young/文档/编译工程/lab/lab2/cmake-build-debug/lab2" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="/home/young/文档/编译工程/lab/lab2/."/>
-					<Add directory="/usr/include/c++/7"/>
-					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
-					<Add directory="/usr/include/c++/7/backward"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
-					<Add directory="/usr/include/x86_64-linux-gnu"/>
-					<Add directory="/usr/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 lab2"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="lab2/fast">
-				<Option output="/home/young/文档/编译工程/lab/lab2/cmake-build-debug/lab2" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="/home/young/文档/编译工程/lab/lab2/."/>
-					<Add directory="/usr/include/c++/7"/>
-					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
-					<Add directory="/usr/include/c++/7/backward"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
-					<Add directory="/usr/include/x86_64-linux-gnu"/>
-					<Add directory="/usr/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 lab2/fast"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
 			<Target title="edit_cache">
 				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
 				<Option type="4"/>
@@ -85,15 +37,97 @@
 					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
+			<Target title="intrinsics_gen">
+				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 intrinsics_gen"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option output="/home/young/文档/编译工程/lab/lab2/cmake-build-debug/test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/young/文档/编译工程/lab/lab2/."/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 test"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="test/fast">
+				<Option output="/home/young/文档/编译工程/lab/lab2/cmake-build-debug/test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/young/文档/编译工程/lab/lab2/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/young/文档/编译工程/lab/lab2/."/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 test/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/young/文档/编译工程/lab/lab2/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
 		</Build>
 		<Unit filename="/home/young/文档/编译工程/lab/lab2/cgen.cpp">
-			<Option target="lab2"/>
+			<Option target="test"/>
 		</Unit>
 		<Unit filename="/home/young/文档/编译工程/lab/lab2/cgen.h">
-			<Option target="lab2"/>
+			<Option target="test"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/parser.tab.cpp">
+			<Option target="test"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/parser.tab.hpp">
+			<Option target="test"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/scanner.cpp">
+			<Option target="test"/>
 		</Unit>
 		<Unit filename="/home/young/文档/编译工程/lab/lab2/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/../../../../../../usr/lib/llvm-6.0/cmake/LLVMConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\cmake\"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/../../../../../../usr/lib/llvm-6.0/cmake/LLVMConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\cmake\"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/../../../../../../usr/lib/llvm-6.0/lib/cmake/llvm/LLVM-Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\cmake\llvm\"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/../../../../../../usr/lib/llvm-6.0/lib/cmake/llvm/LLVMExports-relwithdebinfo.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\cmake\llvm\"/>
+		</Unit>
+		<Unit filename="/home/young/文档/编译工程/lab/lab2/../../../../../../usr/lib/llvm-6.0/lib/cmake/llvm/LLVMExports.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\lib\llvm-6.0\lib\cmake\llvm\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>
