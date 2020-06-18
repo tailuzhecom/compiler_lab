@@ -22,10 +22,11 @@ void Program::Append(ASTNode *b) {
 
 Value *Program::Cgen() {
     std::cout << "program size: " << begs_.size() << std::endl;
+    symbol_table.Enterscope();
     for (int i = 0; i < begs_.size(); i++) {
         begs_[i]->Cgen();
     }
-
+    symbol_table.Exitscope();
     TheModule->print(errs(), nullptr);
 }
 
@@ -68,10 +69,18 @@ Value *DeclStmt::Cgen() {
     for (int i = 0; i < vars_.size(); i++) {
         std::cout << "type: " << vars_[i].type_ << " name: " << vars_[i].name_
             << " init_expr: " << std::endl;
+
+
+        AllocaInst *var_ptr = Builder.CreateAlloca(UtilConvertStrToType(vars_[i].type_), nullptr, vars_[i].name_);
+        symbol_table.AddItem(vars_[i].name_, var_ptr); // 将声明的变量加入符号表
+        Value *init_val = nullptr;
         if (vars_[i].init_val_)
-            vars_[i].init_val_->Cgen();
+            init_val = vars_[i].init_val_->Cgen();
         else
             std::cout << "null expr" << std::endl;
+
+        if (init_val)
+            Builder.CreateStore(init_val, var_ptr);
     }
     return NULL;
 }
@@ -90,6 +99,7 @@ void DeclStmt::SetTypeForAllVariables(std::string type) {
 // 赋值语句
 Value *AssignStmt::Cgen() {
     std::cout << "assign_stmt" << std::endl;
+    Builder.CreateStore(assign_expr_->Cgen(), symbol_table.Lookup(var_name_));
     return NULL;
 }
 
@@ -275,7 +285,14 @@ Value *CallStmt::Cgen() {
 // 普通变量
 Value *Identity::Cgen() {
     std::cout << "Identity: " << name_ << std::endl;
-    return NULL;
+    Value *iden_ptr = nullptr;
+    if (iden_ptr = symbol_table.Lookup(name_))
+        return Builder.CreateLoad(iden_ptr, ""); //　返回变量对应的值
+    else {
+        std::cout << "Identity doesn't exist" << std::endl;
+        return nullptr;
+    }
+
 }
 
 // 类成员变量
@@ -319,6 +336,7 @@ Value *Func::Cgen() {
 
     // cgen
     // 设置形参类型
+    symbol_table.Enterscope();
     std::vector<Type*> args_type_list;
     for (int i = 0; i < args_->args_.size(); i++) {
         args_type_list.push_back(UtilConvertStrToType(args_->args_[i].type_));
@@ -328,15 +346,21 @@ Value *Func::Cgen() {
     FunctionType *func_type = FunctionType::get(UtilConvertStrToType(return_type_), args_type_list, false);
     Function * func = Function::Create(func_type, Function::ExternalLinkage, func_name_, TheModule.get());
 
-    // 设置形参名字
     unsigned idx = 0;
-    for (auto &arg : func->args()) {
-        arg.setName(args_->args_[idx++].name_);
-    }
+
     BasicBlock *entry_block = BasicBlock::Create(TheContext, "entry", func);
     Builder.SetInsertPoint(entry_block);
 
+    for (auto &arg : func->args()) {
+        arg.setName(args_->args_[idx].name_); // 设置形参名字
+        Value *arg_ptr = Builder.CreateAlloca(args_type_list[idx], nullptr, "");
+        Builder.CreateStore(&arg, arg_ptr);
+        symbol_table.AddItem(args_->args_[idx].name_, arg_ptr); // 添加形参到符号表
+        idx++;
+    }
+
     block_->Cgen();
+    symbol_table.Exitscope();
     return NULL;
 }
 
