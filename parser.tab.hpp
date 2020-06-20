@@ -110,8 +110,10 @@ union YYSTYPE
     Factor *factor_ptr;
     BinExpr *binexpr_ptr;
     SingleExpr *singleexpr_ptr;
+    ReturnStmt *returnstmt_ptr;
+    ObjMember *objmember_ptr;
 
-#line 115 "parser.tab.hpp" /* yacc.c:1909  */
+#line 117 "parser.tab.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

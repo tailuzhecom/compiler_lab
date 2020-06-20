@@ -124,17 +124,17 @@ intrinsics_gen/fast:
 .PHONY : intrinsics_gen/fast
 
 #=============================================================================
-# Target rules for targets named test
+# Target rules for targets named rush
 
 # Build rule for target.
-test: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 test
-.PHONY : test
+rush: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 rush
+.PHONY : rush
 
 # fast build rule for target.
-test/fast:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/build
-.PHONY : test/fast
+rush/fast:
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/build
+.PHONY : rush/fast
 
 cgen.o: cgen.cpp.o
 
@@ -142,7 +142,7 @@ cgen.o: cgen.cpp.o
 
 # target to build an object file
 cgen.cpp.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/cgen.cpp.o
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/cgen.cpp.o
 .PHONY : cgen.cpp.o
 
 cgen.i: cgen.cpp.i
@@ -151,7 +151,7 @@ cgen.i: cgen.cpp.i
 
 # target to preprocess a source file
 cgen.cpp.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/cgen.cpp.i
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/cgen.cpp.i
 .PHONY : cgen.cpp.i
 
 cgen.s: cgen.cpp.s
@@ -160,7 +160,7 @@ cgen.s: cgen.cpp.s
 
 # target to generate assembly for a file
 cgen.cpp.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/cgen.cpp.s
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/cgen.cpp.s
 .PHONY : cgen.cpp.s
 
 parser.tab.o: parser.tab.cpp.o
@@ -169,7 +169,7 @@ parser.tab.o: parser.tab.cpp.o
 
 # target to build an object file
 parser.tab.cpp.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/parser.tab.cpp.o
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/parser.tab.cpp.o
 .PHONY : parser.tab.cpp.o
 
 parser.tab.i: parser.tab.cpp.i
@@ -178,7 +178,7 @@ parser.tab.i: parser.tab.cpp.i
 
 # target to preprocess a source file
 parser.tab.cpp.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/parser.tab.cpp.i
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/parser.tab.cpp.i
 .PHONY : parser.tab.cpp.i
 
 parser.tab.s: parser.tab.cpp.s
@@ -187,7 +187,7 @@ parser.tab.s: parser.tab.cpp.s
 
 # target to generate assembly for a file
 parser.tab.cpp.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/parser.tab.cpp.s
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/parser.tab.cpp.s
 .PHONY : parser.tab.cpp.s
 
 scanner.o: scanner.cpp.o
@@ -196,7 +196,7 @@ scanner.o: scanner.cpp.o
 
 # target to build an object file
 scanner.cpp.o:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/scanner.cpp.o
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/scanner.cpp.o
 .PHONY : scanner.cpp.o
 
 scanner.i: scanner.cpp.i
@@ -205,7 +205,7 @@ scanner.i: scanner.cpp.i
 
 # target to preprocess a source file
 scanner.cpp.i:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/scanner.cpp.i
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/scanner.cpp.i
 .PHONY : scanner.cpp.i
 
 scanner.s: scanner.cpp.s
@@ -214,7 +214,7 @@ scanner.s: scanner.cpp.s
 
 # target to generate assembly for a file
 scanner.cpp.s:
-	$(MAKE) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/scanner.cpp.s
+	$(MAKE) -f CMakeFiles/rush.dir/build.make CMakeFiles/rush.dir/scanner.cpp.s
 .PHONY : scanner.cpp.s
 
 # Help Target
@@ -226,7 +226,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... intrinsics_gen"
-	@echo "... test"
+	@echo "... rush"
 	@echo "... cgen.o"
 	@echo "... cgen.i"
 	@echo "... cgen.s"

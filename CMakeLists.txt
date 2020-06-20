@@ -10,7 +10,7 @@ set(LLVM_LINK_COMPONENTS
         Core
         Support)
 
-add_executable(test
+add_executable(rush
         cgen.cpp
         cgen.h
         parser.tab.cpp
@@ -18,4 +18,4 @@ add_executable(test
         scanner.cpp)
 
 llvm_map_components_to_libnames(llvm_libs ${LLVM_LINK_COMPONENTS})
-target_link_libraries(test ${llvm_libs})
+target_link_libraries(rush ${llvm_libs})

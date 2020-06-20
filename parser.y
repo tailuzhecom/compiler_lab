@@ -40,6 +40,8 @@ int yylex();
     Factor *factor_ptr;
     BinExpr *binexpr_ptr;
     SingleExpr *singleexpr_ptr;
+    ReturnStmt *returnstmt_ptr;
+    ObjMember *objmember_ptr;
 }
 
 /* token*/
@@ -80,9 +82,9 @@ int yylex();
 %type <strval> type_dec
 %type <node> beg
 %type <node> func class_decl
-%type <node> case_list obj_member obj_call
+%type <node> case_list obj_call
 %type <block_ptr> block
-%type <sentence_ptr> sentence return_stmt break_stmt switch_stmt
+%type <sentence_ptr> sentence break_stmt switch_stmt
 %type <ifstmt_ptr> if_stmt
 %type <whilestmt_ptr> while_stmt
 %type <forstmt_ptr> for_stmt
@@ -96,6 +98,9 @@ int yylex();
 %type <factor_ptr> factor
 %type <binexpr_ptr> bin_expr
 %type <singleexpr_ptr> single_expr
+%type <returnstmt_ptr> return_stmt
+%type <objmember_ptr> obj_member
+
 
 %start beg
 
@@ -188,7 +193,7 @@ for_stmt: FOR LPAREN decl_stmt ';' expr ';' assign_stmt RPAREN LBRACKET block RB
 call_stmt: IDENTITY LPAREN expr_list RPAREN { $$ = new CallStmt($1, $3->GetExprList()); printf("call %s\n", $1); }
 
 // 调用时的形参列表
-expr_list: expr { $$ = new ExprList; }
+expr_list: expr { $$ = new ExprList; $$->Append($1); }
          | expr_list ',' expr { $1->Append($3); }
 	 |
 	 ;
@@ -208,25 +213,29 @@ id_list: IDENTITY           { $$ = new IdList; $$->Append(Variable("", $1)); pri
 
 // 赋值语句
 assign_stmt: IDENTITY ASSIGN expr    { $$ = new AssignStmt($1, $3); printf("id: %s\n assignment\n", $1); }
+    | obj_member ASSIGN expr	{ $$ = new AssignStmt($1, $3); }
     ;
 
 // return语句
-return_stmt: RETURN expr { $$ = new ReturnStmt; printf("return statement\n"); }
-
+return_stmt: RETURN expr { $$ = new ReturnStmt($2); printf("return statement\n"); }
+	   | RETURN	 { $$ = new ReturnStmt(NULL); }
+           ;
 // break语句
 break_stmt: BREAK { $$= new BreakStmt; printf("break statement\n"); }
-
+	  ;
 // 对象的变量
-obj_member: IDENTITY '.' IDENTITY { printf("obj: %s mem: %s\n", $1, $3); }
-
+obj_member: IDENTITY '.' IDENTITY { $$ = new ObjMember($1, $3); printf("obj: %s mem: %s\n", $1, $3); }
+          ;
 // 对象call
 obj_call: IDENTITY '.' call_stmt { printf("obj: %s\n", $1); }
+        ;
 
 // 表达式
 expr: LPAREN expr RPAREN { $$ = $2; }
     | factor    { $$ = $1; }
     | bin_expr  { $$ = $1; }
     | single_expr { $$ = $1; }
+    | STRING { $$ = new StringConst($1); printf("string const: %s\n", $1); }
     ;
 
 // 表达式中的factor，为常量或者标识符
@@ -234,9 +243,8 @@ factor: INT_NUMBER      { $$ = new IntConst($1); printf("int const: %d\n", $1); 
     | FLOAT_NUMBER      { $$ = new FloatConst($1); printf("float const: %d\n", $1); }
     | call_stmt   	{ $$ = $1; }
     | IDENTITY          { $$ = new Identity($1); printf("iden factor: %s\n", $1); }
-    | obj_member
+    | obj_member	{ $$ = $1; }
     | obj_call
-    | STRING { printf("string const: %s\n", $1); }
     ;
 
 // 二元表达式
@@ -267,10 +275,8 @@ type_dec: INT       { printf("type: int\n"); $$ = "int"; }
     | LONG          { printf("type: long\n"); $$ = "long"; }
     | UNSIGNED LONG { printf("type: unsigned\n"); $$ = "unsigned long"; }
     | VOID	    { printf("type: void\n"); $$ = "void"; }
-    //| IDENTITY      { printf("type: class\n"); $$ = IDENTITY; }
+    | IDENTITY      { printf("type: class\n"); $$ = $1; }
     ;
-
-
 %%
 
 int main(int argc, const char *args[])
@@ -284,7 +290,9 @@ int main(int argc, const char *args[])
 		exit(1);
 	}
 
-	prog = new Program;
+	printf("input file: %s", args[1]);
+
+	prog = new Program(args[1]);
 
 	if(yyparse()) {
 		exit(-1);

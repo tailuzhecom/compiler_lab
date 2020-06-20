@@ -17,12 +17,16 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/ADT/APFloat.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/raw_os_ostream.h"
+#include <fstream>
 
 using namespace llvm;
 
 class Beg;
 class Expr;
 class Block;
+class ObjMember;
 
 // 符号表
 class SymboTable {
@@ -46,7 +50,7 @@ public:
 // 程序节点，AST的根节点
 class Program : public ASTNode {
 public:
-    Program() {
+    Program(const std::string &file_name = "output.ll") : output_file_name_(file_name) {
         std::cout << "Program create" << std::endl;
         Init();
     }
@@ -58,6 +62,7 @@ public:
 
 private:
     std::vector<ASTNode*> begs_;
+    std::string output_file_name_;
 };
 
 class Beg : public ASTNode {
@@ -152,6 +157,9 @@ public:
         assign_expr_ = assign_expr;
     }
 
+    AssignStmt(ObjMember *obj_member, Expr *assign_expr) :
+        obj_member_(obj_member), assign_expr_(assign_expr) {}
+
     std::string GetName() { return var_name_; }
     Expr *GetVal() { return assign_expr_; }
 
@@ -159,6 +167,7 @@ public:
 
 private:
     std::string var_name_;
+    ObjMember *obj_member_ = nullptr;
     Expr *assign_expr_;
 };
 
@@ -182,6 +191,7 @@ private:
 // 返回语句
 class ReturnStmt : public Sentence {
 public:
+    ReturnStmt(Expr *expr) : expr_(expr) {}
     Value *Cgen();
 
 private:
@@ -290,6 +300,8 @@ private:
 // 字符串常量
 class StringConst : public Expr {
 public:
+    StringConst(const std::string &s) : string_val_(s) {}
+    Value *Cgen();
 private:
     std::string string_val_;
 };
@@ -328,7 +340,7 @@ private:
 class CallStmt : public Factor {
 public:
     CallStmt() {}
-    CallStmt(std::string func_name, const std::vector<Expr*> vals) :
+    CallStmt(std::string func_name, const std::vector<Expr*> &vals) :
         func_name_(func_name), vals_(vals) {}
 
     Value *Cgen();
@@ -341,6 +353,8 @@ private:
 // 类成员变量
 class ObjMember : public Factor {
 public:
+    ObjMember(const std::string &var_name, const std::string &member_name) :
+        var_name_(var_name), member_name_(member_name) {}
     Value *Cgen();
 
 private:
@@ -398,7 +412,6 @@ public:
 private:
     std::vector<Expr*> expr_list_;
 };
-
 
 
 

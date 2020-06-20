@@ -13,6 +13,7 @@ llvm::LLVMContext TheContext;
 IRBuilder<> Builder(TheContext);
 std::unique_ptr<Module> TheModule;
 SymboTable symbol_table;
+std::map<Type*, std::map<std::string, int> > class_mem_offset;
 
 
 // 程序节点，AST的根节点
@@ -27,12 +28,31 @@ Value *Program::Cgen() {
         begs_[i]->Cgen();
     }
     symbol_table.Exitscope();
-    TheModule->print(errs(), nullptr);
+
+    // 将生成的llvm ir打印到输出文件
+    std::ofstream s(output_file_name_ + ".ll");
+    if (!s) {
+        std::cerr << "cannot open output file" << std::endl;
+        exit(1);
+    }
+    std::ostream &s1 = s;
+    raw_os_ostream os(s1);
+    TheModule->print(os, nullptr);
+
 }
 
 // 初始化llvm环境
 void Program::Init() {
-    TheModule = make_unique<Module>("llvm_test", TheContext);
+    TheModule = make_unique<Module>("rush", TheContext);
+//    InitializeNativeTarget();
+//    InitializeNativeTargetAsmPrinter();
+//    InitializeNativeTargetAsmPrinter();
+    TheModule->setDataLayout(TheModule->getTargetTriple());
+    FunctionType *print_type = llvm::FunctionType::get(
+            llvm::Type::getInt32Ty(TheContext),
+            {llvm::Type::getInt8PtrTy(TheContext)},
+            true);
+    Function::Create(print_type, llvm::GlobalValue::ExternalLinkage, "printf", TheModule.get());
 }
 
 
@@ -40,11 +60,20 @@ Value *Class::Cgen() {
     std::cout << "class def" << std::endl;
     std::cout << "class name: " << name_ << std::endl;
     std::cout << "class member:" << std::endl;
+
+    StructType *class_type = StructType::create(TheContext, name_);
     for (int i = 0; i < member_varibles_->args_.size(); i++) {
         std::cout << "type: " << member_varibles_->args_[i].type_
                 << " name: " << member_varibles_->args_[i].name_ << std::endl;
+        class_mem_offset[class_type->getPointerTo()][member_varibles_->args_[i].name_] = i;
     }
 
+
+    std::vector<Type*> member_types;
+    for (int i = 0; i < member_varibles_->args_.size(); i++) {
+        member_types.push_back(UtilConvertStrToType(member_varibles_->args_[i].type_));
+    }
+    class_type->setBody(member_types);
     return NULL;
 }
 
@@ -99,7 +128,13 @@ void DeclStmt::SetTypeForAllVariables(std::string type) {
 // 赋值语句
 Value *AssignStmt::Cgen() {
     std::cout << "assign_stmt" << std::endl;
-    Builder.CreateStore(assign_expr_->Cgen(), symbol_table.Lookup(var_name_));
+    if (obj_member_ == nullptr) // 如果变量是基本类型
+        Builder.CreateStore(assign_expr_->Cgen(), symbol_table.Lookup(var_name_));
+    else { // 如果变量是成员变量
+        Builder.CreateStore(assign_expr_->Cgen(), obj_member_->Cgen());
+    }
+
+
     return NULL;
 }
 
@@ -154,7 +189,12 @@ Value *IfStmt::Cgen() {
 // 返回语句
 Value *ReturnStmt::Cgen() {
     std::cout << "return_stmt" << std::endl;
-    return NULL;
+    Value *ret_val = expr_->Cgen();
+    if (ret_val)
+        Builder.CreateRet(ret_val);
+    else
+        Builder.CreateRetVoid();
+    return nullptr;
 }
 
 
@@ -246,7 +286,6 @@ Value *Expr::Cgen() {
 }
 
 // 二元运算表达式
-
 Value *BinExpr::Cgen() {
     std::cout << "bin_expr" << std::endl;
     switch (op_) {
@@ -318,7 +357,16 @@ Value *SingleExpr::Cgen() {
 Value *CallStmt::Cgen() {
     std::cout << "call_stmt" << std::endl;
     std::cout << "func_name: " << func_name_ << " val_num: " << vals_.size() << std::endl;
-    return NULL;
+    Function *func = TheModule->getFunction(func_name_);
+    if (func == nullptr)
+        std::cout << "func is null" << std::endl;
+    else
+        std::cout << "func has declared" << std::endl;
+    std::vector<Value*> vals;
+    for (int i = 0; i < vals_.size(); i++) {
+        vals.push_back(vals_[i]->Cgen());
+    }
+    return Builder.CreateCall(func, vals);
 }
 
 // 普通变量
@@ -337,6 +385,23 @@ Value *Identity::Cgen() {
 // 类成员变量
 Value *ObjMember::Cgen() {
     std::cout << "obj_member" << std::endl;
+    Value *var = symbol_table.Lookup(var_name_);
+    if (var == nullptr) {
+        std::cout << "variable doesn't exist." << std::endl;
+        return NULL;
+    }
+
+    if (class_mem_offset[var->getType()].count(member_name_)) {
+        int offset = class_mem_offset[var->getType()][member_name_];
+        std::vector<Value*> gep_list({ConstantInt::get(Type::getInt32Ty(TheContext), APInt(32, 0)),
+                                      ConstantInt::get(Type::getInt32Ty(TheContext), APInt(32, offset))});
+        Value *attr_ptr = Builder.CreateGEP(var, gep_list);
+        return attr_ptr;
+    }
+    else {
+        std::cout << "member doesn't exist." << std::endl;
+        return NULL;
+    }
     return NULL;
 }
 
@@ -367,6 +432,7 @@ Value *Func::Cgen() {
 
     std::cout << "return_type: " << return_type_ << " func: " << func_name_ << std::endl;
     std::cout << "args list:" << std::endl;
+
     for (int i = 0; i < args_->args_.size(); i++) {
         std::cout << "arg_type: " << args_->args_[i].type_
                 << " arg_name: " << args_->args_[i].name_ << std::endl;
@@ -469,4 +535,8 @@ Value *SymboTable::Probe(const std::string &name) {
 
 void SymboTable::clear() {
     table_.clear();
+}
+
+Value *StringConst::Cgen() {
+    return Builder.CreateGlobalStringPtr(string_val_);
 }

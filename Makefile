@@ -26,5 +26,11 @@ clean:
 
 ast: parser.tab.cpp parser.tab.h scanner.cpp
 
-run:
-	cat ./input.txt | cmake-build-debug/test
+ll:
+	cmake-build-debug/rush input
+
+build: 
+	llvm-as-6.0 < ./input.ll | lli-6.0
+	
+
+

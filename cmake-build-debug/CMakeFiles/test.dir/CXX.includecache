@@ -43,4 +43,10 @@ llvm/IR/BasicBlock.h
 /home/young/文档/编译工程/lab/lab2/llvm/IR/BasicBlock.h
 llvm/ADT/APFloat.h
 /home/young/文档/编译工程/lab/lab2/llvm/ADT/APFloat.h
+llvm/Support/TargetSelect.h
+/home/young/文档/编译工程/lab/lab2/llvm/Support/TargetSelect.h
+llvm/Support/raw_os_ostream.h
+/home/young/文档/编译工程/lab/lab2/llvm/Support/raw_os_ostream.h
+fstream
+-
 
