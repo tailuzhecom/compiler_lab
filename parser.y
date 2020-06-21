@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include "cgen.h"
 
-Program *prog = NULL;
+std::shared_ptr<Program> prog = NULL;
 
 void yyerror(char *s, ...);
 int yylex();
@@ -64,7 +64,7 @@ int yylex();
 %token RETURN
 
 
-%token LPAREN RPAREN LBRACKET RBRACKET ':' 
+%token LPAREN RPAREN LBRACKET RBRACKET ':'
 %token <strval> IDENTITY
 %token <intval> INT_NUMBER
 %token <floatval> FLOAT_NUMBER
@@ -106,18 +106,18 @@ int yylex();
 
 %%
 
-beg: func { prog->Append($1); }
-   | beg func { prog->Append($2); }
-   | global_decl_stmt { prog->Append($1); }
-   | beg global_decl_stmt { prog->Append($2); }
-   | class_decl { prog->Append($1); }
-   | beg class_decl { prog->Append($2); }
+beg: func { prog->Append(std::shared_ptr<ASTNode>($1)); }
+   | beg func { prog->Append(std::shared_ptr<ASTNode>($2)); }
+   | global_decl_stmt { prog->Append(std::shared_ptr<ASTNode>($1)); }
+   | beg global_decl_stmt { prog->Append(std::shared_ptr<ASTNode>($2)); }
+   | class_decl { prog->Append(std::shared_ptr<ASTNode>($1)); }
+   | beg class_decl { prog->Append(std::shared_ptr<ASTNode>($2)); }
    |
    ;
 
 /* 语法规则 */
 //函数定义
-func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET block RBRACKET { $$ = new Func($1, $2, $4, $7); }
+func: type_dec IDENTITY LPAREN args_list RPAREN LBRACKET block RBRACKET { $$ = new Func($1, $2, std::shared_ptr<ArgsList>($4), std::shared_ptr<Block>($7)); }
     ;
 
 // 函数定义时所使用的形参
@@ -126,12 +126,12 @@ args_list: type_dec IDENTITY { $$ = new ArgsList; $$->Append(VariableDef($1, $2)
 	 | { $$ = new ArgsList; }
 	 ;
 // 类声明
-class_decl: CLASS IDENTITY LBRACKET class_decl_stmt_list RBRACKET ';' { $$ = new Class($2, $4); printf("class %s\n", $2); }
+class_decl: CLASS IDENTITY LBRACKET class_decl_stmt_list RBRACKET ';' { $$ = new Class($2, std::shared_ptr<ArgsList>($4)); printf("class %s\n", $2); }
 
 // 注意block中sentence的顺序
 // block
-block: sentence ';' { $$ = new Block; $$->Append($1); }
-    | block sentence ';' { $1->Append($2); }
+block: sentence ';' { $$ = new Block; $$->Append(std::shared_ptr<Sentence>($1)); }
+    | block sentence ';' { $1->Append(std::shared_ptr<Sentence>($2)); }
     | { $$ = new Block; }
     ;
 
@@ -171,30 +171,43 @@ class_decl_stmt_list: type_dec IDENTITY ';' {
 		    }
 		    | func
 		    | func class_decl_stmt_list
-                    | 
+                    |
 		    ;
 
 // if语句
-if_stmt: IF LPAREN expr RPAREN LBRACKET block RBRACKET { $$ = new IfStmt; $$->SetBoolExpr($3); $$->SetTrueBlock($6); printf("if statement\n"); }
-       | IF LPAREN expr RPAREN LBRACKET block RBRACKET ELSE LBRACKET block RBRACKET { $$ = new IfStmt; $$->SetBoolExpr($3); $$->SetTrueBlock($6); $$->SetFalseBlock($10); printf("if-else statement\n"); }
+if_stmt: IF LPAREN expr RPAREN LBRACKET block RBRACKET {
+		$$ = new IfStmt; $$->SetBoolExpr(std::shared_ptr<Expr>($3));
+		$$->SetTrueBlock(std::shared_ptr<Block>($6));
+		printf("if statement\n");
+	}
+       | IF LPAREN expr RPAREN LBRACKET block RBRACKET ELSE LBRACKET block RBRACKET {
+        	$$ = new IfStmt;
+        	$$->SetBoolExpr(std::shared_ptr<Expr>($3));
+        	$$->SetTrueBlock(std::shared_ptr<Block>($6));
+        	$$->SetFalseBlock(std::shared_ptr<Block>($10));
+        	printf("if-else statement\n");
+        }
        ;
 
 // while语句
-while_stmt: WHILE LPAREN expr RPAREN LBRACKET block RBRACKET { $$ = new WhileStmt($3, $6); printf("while statement\n"); }
+while_stmt: WHILE LPAREN expr RPAREN LBRACKET block RBRACKET { $$ = new WhileStmt(std::shared_ptr<Expr>($3), std::shared_ptr<Block>($6)); printf("while statement\n"); }
           ;
 
 // switch语句
 switch_stmt: SWITCH LPAREN expr RPAREN LBRACKET case_list RBRACKET { $$ = new SwitchStmt; printf("switch statement\n"); }
 	   ;
 // for语句
-for_stmt: FOR LPAREN decl_stmt ';' expr ';' assign_stmt RPAREN LBRACKET block RBRACKET { $$ = new ForStmt($3, $5, $7, $10); printf("for statement\n"); }
+for_stmt: FOR LPAREN decl_stmt ';' expr ';' assign_stmt RPAREN LBRACKET block RBRACKET {
+		$$ = new ForStmt(std::shared_ptr<DeclStmt>($3), std::shared_ptr<Expr>($5), std::shared_ptr<AssignStmt>($7), std::shared_ptr<Block>($10));
+		printf("for statement\n");
+	}
 
 // call语句
 call_stmt: IDENTITY LPAREN expr_list RPAREN { $$ = new CallStmt($1, $3->GetExprList()); printf("call %s\n", $1); }
 
 // 调用时的形参列表
-expr_list: expr { $$ = new ExprList; $$->Append($1); }
-         | expr_list ',' expr { $1->Append($3); }
+expr_list: expr { $$ = new ExprList; $$->Append(std::shared_ptr<Expr>($1)); }
+         | expr_list ',' expr { $1->Append(std::shared_ptr<Expr>($3)); }
 	 |
 	 ;
 
@@ -212,12 +225,12 @@ id_list: IDENTITY           { $$ = new IdList; $$->Append(Variable("", $1)); pri
     ;
 
 // 赋值语句
-assign_stmt: IDENTITY ASSIGN expr    { $$ = new AssignStmt($1, $3); printf("id: %s\n assignment\n", $1); }
-    | obj_member ASSIGN expr	{ $$ = new AssignStmt($1, $3); }
+assign_stmt: IDENTITY ASSIGN expr    { $$ = new AssignStmt($1, std::shared_ptr<Expr>($3)); printf("id: %s\n assignment\n", $1); }
+    | obj_member ASSIGN expr	{ $$ = new AssignStmt(std::shared_ptr<ObjMember>($1), std::shared_ptr<Expr>($3)); $1->SetIsVar(true); }
     ;
 
 // return语句
-return_stmt: RETURN expr { $$ = new ReturnStmt($2); printf("return statement\n"); }
+return_stmt: RETURN expr { $$ = new ReturnStmt(std::shared_ptr<Expr>($2)); printf("return statement\n"); }
 	   | RETURN	 { $$ = new ReturnStmt(NULL); }
            ;
 // break语句
@@ -248,23 +261,23 @@ factor: INT_NUMBER      { $$ = new IntConst($1); printf("int const: %d\n", $1); 
     ;
 
 // 二元表达式
-bin_expr: expr '+' expr     { $$ = new BinExpr(add_op, $1, $3); printf("+\n"); }
-    | expr '-' expr         { $$ = new BinExpr(sub_op, $1, $3); printf("-\n"); }
-    | expr '*' expr         { $$ = new BinExpr(mul_op, $1, $3); printf("*\n"); }
-    | expr '/' expr         { $$ = new BinExpr(div_op, $1, $3); printf("/\n"); }
-    | expr '%' expr	    { $$ = new BinExpr(mod_op, $1, $3); printf("%\n"); }
-    | expr EQUAL expr	    { $$ = new BinExpr(eq_op, $1, $3); printf("==\n"); }
-    | expr LESS expr	    { $$ = new BinExpr(less_op, $1, $3); printf("<\n"); }
-    | expr LESS_E expr	    { $$ = new BinExpr(lesseq_op, $1, $3); printf("<=\n"); }
-    | expr GREATER expr	    { $$ = new BinExpr(greater_op, $1, $3); printf(">\n"); }
-    | expr GREATER_E expr   { $$ = new BinExpr(greatereq_op, $1, $3); printf(">=\n"); }
-    | expr AND expr	    { $$ = new BinExpr(and_op, $1, $3); printf("&&\n"); }
-    | expr OR expr 	    { $$ = new BinExpr(or_op, $1, $3); printf("||\n"); }
+bin_expr: expr '+' expr     { $$ = new BinExpr(add_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("+\n"); }
+    | expr '-' expr         { $$ = new BinExpr(sub_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("-\n"); }
+    | expr '*' expr         { $$ = new BinExpr(mul_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("*\n"); }
+    | expr '/' expr         { $$ = new BinExpr(div_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("/\n"); }
+    | expr '%' expr	    { $$ = new BinExpr(mod_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("%\n"); }
+    | expr EQUAL expr	    { $$ = new BinExpr(eq_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("==\n"); }
+    | expr LESS expr	    { $$ = new BinExpr(less_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("<\n"); }
+    | expr LESS_E expr	    { $$ = new BinExpr(lesseq_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("<=\n"); }
+    | expr GREATER expr	    { $$ = new BinExpr(greater_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf(">\n"); }
+    | expr GREATER_E expr   { $$ = new BinExpr(greatereq_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf(">=\n"); }
+    | expr AND expr	    { $$ = new BinExpr(and_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("&&\n"); }
+    | expr OR expr 	    { $$ = new BinExpr(or_op, std::shared_ptr<Expr>($1), std::shared_ptr<Expr>($3)); printf("||\n"); }
     ;
 
 // 一元表达式
-single_expr: '!' expr { $$ = new SingleExpr(not_op, $2); printf("not expr\n"); }
-	  | '~' expr { $$ = new SingleExpr(neg_op, $2); printf("neg expr\n"); }
+single_expr: '!' expr { $$ = new SingleExpr(not_op, std::shared_ptr<Expr>($2)); printf("not expr\n"); }
+	  | '~' expr { $$ = new SingleExpr(neg_op, std::shared_ptr<Expr>($2)); printf("neg expr\n"); }
 	  ;
 
 // 符号类型
@@ -282,7 +295,7 @@ type_dec: INT       { printf("type: int\n"); $$ = "int"; }
 int main(int argc, const char *args[])
 {
 	/* 将注释去掉就能看到stack具体是怎么工作的.. */
-    	//yydebug = 1; 
+    	//yydebug = 1;
 
 	extern FILE *yyin;
 	if(argc > 1 && (yyin = fopen(args[1], "r")) == NULL) {
@@ -292,7 +305,7 @@ int main(int argc, const char *args[])
 
 	printf("input file: %s", args[1]);
 
-	prog = new Program(args[1]);
+	prog = std::make_shared<Program>(args[1]);
 
 	if(yyparse()) {
 		exit(-1);

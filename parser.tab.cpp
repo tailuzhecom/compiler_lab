@@ -70,7 +70,7 @@
 #include <stdarg.h>
 #include "cgen.h"
 
-Program *prog = NULL;
+std::shared_ptr<Program> prog = NULL;
 
 void yyerror(char *s, ...);
 int yylex();
@@ -515,12 +515,12 @@ static const yytype_uint16 yyrline[] =
        0,   109,   109,   110,   111,   112,   113,   114,   115,   120,
      124,   125,   126,   129,   133,   134,   135,   139,   140,   141,
      142,   143,   144,   145,   146,   147,   148,   152,   161,   165,
-     169,   172,   173,   174,   178,   179,   183,   187,   190,   193,
-     196,   197,   198,   202,   203,   204,   208,   209,   210,   211,
-     215,   216,   220,   221,   224,   227,   230,   234,   235,   236,
-     237,   238,   242,   243,   244,   245,   246,   247,   251,   252,
-     253,   254,   255,   256,   257,   258,   259,   260,   261,   262,
-     266,   267,   271,   272,   273,   274,   275,   276,   277,   278
+     169,   172,   173,   174,   178,   183,   193,   197,   200,   206,
+     209,   210,   211,   215,   216,   217,   221,   222,   223,   224,
+     228,   229,   233,   234,   237,   240,   243,   247,   248,   249,
+     250,   251,   255,   256,   257,   258,   259,   260,   264,   265,
+     266,   267,   268,   269,   270,   271,   272,   273,   274,   275,
+     279,   280,   284,   285,   286,   287,   288,   289,   290,   291
 };
 #endif
 
@@ -1573,43 +1573,43 @@ yyreduce:
     {
         case 2:
 #line 109 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].node)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].node))); }
 #line 1578 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
 #line 110 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].node)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].node))); }
 #line 1584 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
 #line 111 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].declstmt_ptr)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].declstmt_ptr))); }
 #line 1590 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
 #line 112 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].declstmt_ptr)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].declstmt_ptr))); }
 #line 1596 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
 #line 113 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].node)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].node))); }
 #line 1602 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
 #line 114 "parser.y" /* yacc.c:1646  */
-    { prog->Append((yyvsp[0].node)); }
+    { prog->Append(std::shared_ptr<ASTNode>((yyvsp[0].node))); }
 #line 1608 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
 #line 120 "parser.y" /* yacc.c:1646  */
-    { (yyval.node) = new Func((yyvsp[-7].strval), (yyvsp[-6].strval), (yyvsp[-4].argslist_ptr), (yyvsp[-1].block_ptr)); }
+    { (yyval.node) = new Func((yyvsp[-7].strval), (yyvsp[-6].strval), std::shared_ptr<ArgsList>((yyvsp[-4].argslist_ptr)), std::shared_ptr<Block>((yyvsp[-1].block_ptr))); }
 #line 1614 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
@@ -1633,19 +1633,19 @@ yyreduce:
 
   case 13:
 #line 129 "parser.y" /* yacc.c:1646  */
-    { (yyval.node) = new Class((yyvsp[-4].strval), (yyvsp[-2].argslist_ptr)); printf("class %s\n", (yyvsp[-4].strval)); }
+    { (yyval.node) = new Class((yyvsp[-4].strval), std::shared_ptr<ArgsList>((yyvsp[-2].argslist_ptr))); printf("class %s\n", (yyvsp[-4].strval)); }
 #line 1638 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
 #line 133 "parser.y" /* yacc.c:1646  */
-    { (yyval.block_ptr) = new Block; (yyval.block_ptr)->Append((yyvsp[-1].sentence_ptr)); }
+    { (yyval.block_ptr) = new Block; (yyval.block_ptr)->Append(std::shared_ptr<Sentence>((yyvsp[-1].sentence_ptr))); }
 #line 1644 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
 #line 134 "parser.y" /* yacc.c:1646  */
-    { (yyvsp[-2].block_ptr)->Append((yyvsp[-1].sentence_ptr)); }
+    { (yyvsp[-2].block_ptr)->Append(std::shared_ptr<Sentence>((yyvsp[-1].sentence_ptr))); }
 #line 1650 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
@@ -1750,324 +1750,337 @@ yyreduce:
 
   case 34:
 #line 178 "parser.y" /* yacc.c:1646  */
-    { (yyval.ifstmt_ptr) = new IfStmt; (yyval.ifstmt_ptr)->SetBoolExpr((yyvsp[-4].expr_ptr)); (yyval.ifstmt_ptr)->SetTrueBlock((yyvsp[-1].block_ptr)); printf("if statement\n"); }
-#line 1755 "parser.tab.cpp" /* yacc.c:1646  */
+    {
+		(yyval.ifstmt_ptr) = new IfStmt; (yyval.ifstmt_ptr)->SetBoolExpr(std::shared_ptr<Expr>((yyvsp[-4].expr_ptr)));
+		(yyval.ifstmt_ptr)->SetTrueBlock(std::shared_ptr<Block>((yyvsp[-1].block_ptr)));
+		printf("if statement\n");
+	}
+#line 1759 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 179 "parser.y" /* yacc.c:1646  */
-    { (yyval.ifstmt_ptr) = new IfStmt; (yyval.ifstmt_ptr)->SetBoolExpr((yyvsp[-8].expr_ptr)); (yyval.ifstmt_ptr)->SetTrueBlock((yyvsp[-5].block_ptr)); (yyval.ifstmt_ptr)->SetFalseBlock((yyvsp[-1].block_ptr)); printf("if-else statement\n"); }
-#line 1761 "parser.tab.cpp" /* yacc.c:1646  */
+#line 183 "parser.y" /* yacc.c:1646  */
+    {
+        	(yyval.ifstmt_ptr) = new IfStmt;
+        	(yyval.ifstmt_ptr)->SetBoolExpr(std::shared_ptr<Expr>((yyvsp[-8].expr_ptr)));
+        	(yyval.ifstmt_ptr)->SetTrueBlock(std::shared_ptr<Block>((yyvsp[-5].block_ptr)));
+        	(yyval.ifstmt_ptr)->SetFalseBlock(std::shared_ptr<Block>((yyvsp[-1].block_ptr)));
+        	printf("if-else statement\n");
+        }
+#line 1771 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 183 "parser.y" /* yacc.c:1646  */
-    { (yyval.whilestmt_ptr) = new WhileStmt((yyvsp[-4].expr_ptr), (yyvsp[-1].block_ptr)); printf("while statement\n"); }
-#line 1767 "parser.tab.cpp" /* yacc.c:1646  */
+#line 193 "parser.y" /* yacc.c:1646  */
+    { (yyval.whilestmt_ptr) = new WhileStmt(std::shared_ptr<Expr>((yyvsp[-4].expr_ptr)), std::shared_ptr<Block>((yyvsp[-1].block_ptr))); printf("while statement\n"); }
+#line 1777 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 187 "parser.y" /* yacc.c:1646  */
+#line 197 "parser.y" /* yacc.c:1646  */
     { (yyval.sentence_ptr) = new SwitchStmt; printf("switch statement\n"); }
-#line 1773 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1783 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 190 "parser.y" /* yacc.c:1646  */
-    { (yyval.forstmt_ptr) = new ForStmt((yyvsp[-8].declstmt_ptr), (yyvsp[-6].expr_ptr), (yyvsp[-4].assignstmt_ptr), (yyvsp[-1].block_ptr)); printf("for statement\n"); }
-#line 1779 "parser.tab.cpp" /* yacc.c:1646  */
+#line 200 "parser.y" /* yacc.c:1646  */
+    {
+		(yyval.forstmt_ptr) = new ForStmt(std::shared_ptr<DeclStmt>((yyvsp[-8].declstmt_ptr)), std::shared_ptr<Expr>((yyvsp[-6].expr_ptr)), std::shared_ptr<AssignStmt>((yyvsp[-4].assignstmt_ptr)), std::shared_ptr<Block>((yyvsp[-1].block_ptr)));
+		printf("for statement\n");
+	}
+#line 1792 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 193 "parser.y" /* yacc.c:1646  */
+#line 206 "parser.y" /* yacc.c:1646  */
     { (yyval.callstmt_ptr) = new CallStmt((yyvsp[-3].strval), (yyvsp[-1].exprlist_ptr)->GetExprList()); printf("call %s\n", (yyvsp[-3].strval)); }
-#line 1785 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1798 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 196 "parser.y" /* yacc.c:1646  */
-    { (yyval.exprlist_ptr) = new ExprList; (yyval.exprlist_ptr)->Append((yyvsp[0].expr_ptr)); }
-#line 1791 "parser.tab.cpp" /* yacc.c:1646  */
+#line 209 "parser.y" /* yacc.c:1646  */
+    { (yyval.exprlist_ptr) = new ExprList; (yyval.exprlist_ptr)->Append(std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); }
+#line 1804 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 197 "parser.y" /* yacc.c:1646  */
-    { (yyvsp[-2].exprlist_ptr)->Append((yyvsp[0].expr_ptr)); }
-#line 1797 "parser.tab.cpp" /* yacc.c:1646  */
+#line 210 "parser.y" /* yacc.c:1646  */
+    { (yyvsp[-2].exprlist_ptr)->Append(std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); }
+#line 1810 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 202 "parser.y" /* yacc.c:1646  */
+#line 215 "parser.y" /* yacc.c:1646  */
     { printf("case list\n"); }
-#line 1803 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1816 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 203 "parser.y" /* yacc.c:1646  */
+#line 216 "parser.y" /* yacc.c:1646  */
     { printf("case list\n"); }
-#line 1809 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1822 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 208 "parser.y" /* yacc.c:1646  */
+#line 221 "parser.y" /* yacc.c:1646  */
     { (yyval.idlist_ptr) = new IdList; (yyval.idlist_ptr)->Append(Variable("", (yyvsp[0].strval))); printf("iden: %s\n", (yyvsp[0].strval));  }
-#line 1815 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1828 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 209 "parser.y" /* yacc.c:1646  */
+#line 222 "parser.y" /* yacc.c:1646  */
     { (yyvsp[-2].idlist_ptr)->Append(Variable("", (yyvsp[0].strval))); printf("iden: %s\n", (yyvsp[0].strval));  }
-#line 1821 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1834 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 210 "parser.y" /* yacc.c:1646  */
+#line 223 "parser.y" /* yacc.c:1646  */
     { (yyval.idlist_ptr) = new IdList; (yyval.idlist_ptr)->Append(Variable("", (yyvsp[0].assignstmt_ptr)->GetName(), (yyvsp[0].assignstmt_ptr)->GetVal())); }
-#line 1827 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1840 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 211 "parser.y" /* yacc.c:1646  */
+#line 224 "parser.y" /* yacc.c:1646  */
     { (yyvsp[-2].idlist_ptr)->Append(Variable("", (yyvsp[0].assignstmt_ptr)->GetName(), (yyvsp[0].assignstmt_ptr)->GetVal())); }
-#line 1833 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1846 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 215 "parser.y" /* yacc.c:1646  */
-    { (yyval.assignstmt_ptr) = new AssignStmt((yyvsp[-2].strval), (yyvsp[0].expr_ptr)); printf("id: %s\n assignment\n", (yyvsp[-2].strval)); }
-#line 1839 "parser.tab.cpp" /* yacc.c:1646  */
+#line 228 "parser.y" /* yacc.c:1646  */
+    { (yyval.assignstmt_ptr) = new AssignStmt((yyvsp[-2].strval), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("id: %s\n assignment\n", (yyvsp[-2].strval)); }
+#line 1852 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 216 "parser.y" /* yacc.c:1646  */
-    { (yyval.assignstmt_ptr) = new AssignStmt((yyvsp[-2].objmember_ptr), (yyvsp[0].expr_ptr)); }
-#line 1845 "parser.tab.cpp" /* yacc.c:1646  */
+#line 229 "parser.y" /* yacc.c:1646  */
+    { (yyval.assignstmt_ptr) = new AssignStmt(std::shared_ptr<ObjMember>((yyvsp[-2].objmember_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); (yyvsp[-2].objmember_ptr)->SetIsVar(true); }
+#line 1858 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 220 "parser.y" /* yacc.c:1646  */
-    { (yyval.returnstmt_ptr) = new ReturnStmt((yyvsp[0].expr_ptr)); printf("return statement\n"); }
-#line 1851 "parser.tab.cpp" /* yacc.c:1646  */
+#line 233 "parser.y" /* yacc.c:1646  */
+    { (yyval.returnstmt_ptr) = new ReturnStmt(std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("return statement\n"); }
+#line 1864 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 221 "parser.y" /* yacc.c:1646  */
+#line 234 "parser.y" /* yacc.c:1646  */
     { (yyval.returnstmt_ptr) = new ReturnStmt(NULL); }
-#line 1857 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1870 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 224 "parser.y" /* yacc.c:1646  */
+#line 237 "parser.y" /* yacc.c:1646  */
     { (yyval.sentence_ptr)= new BreakStmt; printf("break statement\n"); }
-#line 1863 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1876 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 227 "parser.y" /* yacc.c:1646  */
+#line 240 "parser.y" /* yacc.c:1646  */
     { (yyval.objmember_ptr) = new ObjMember((yyvsp[-2].strval), (yyvsp[0].strval)); printf("obj: %s mem: %s\n", (yyvsp[-2].strval), (yyvsp[0].strval)); }
-#line 1869 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1882 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 230 "parser.y" /* yacc.c:1646  */
+#line 243 "parser.y" /* yacc.c:1646  */
     { printf("obj: %s\n", (yyvsp[-2].strval)); }
-#line 1875 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1888 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 234 "parser.y" /* yacc.c:1646  */
+#line 247 "parser.y" /* yacc.c:1646  */
     { (yyval.expr_ptr) = (yyvsp[-1].expr_ptr); }
-#line 1881 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1894 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 235 "parser.y" /* yacc.c:1646  */
+#line 248 "parser.y" /* yacc.c:1646  */
     { (yyval.expr_ptr) = (yyvsp[0].factor_ptr); }
-#line 1887 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1900 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 236 "parser.y" /* yacc.c:1646  */
+#line 249 "parser.y" /* yacc.c:1646  */
     { (yyval.expr_ptr) = (yyvsp[0].binexpr_ptr); }
-#line 1893 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1906 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 237 "parser.y" /* yacc.c:1646  */
+#line 250 "parser.y" /* yacc.c:1646  */
     { (yyval.expr_ptr) = (yyvsp[0].singleexpr_ptr); }
-#line 1899 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1912 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 238 "parser.y" /* yacc.c:1646  */
+#line 251 "parser.y" /* yacc.c:1646  */
     { (yyval.expr_ptr) = new StringConst((yyvsp[0].strval)); printf("string const: %s\n", (yyvsp[0].strval)); }
-#line 1905 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1918 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 242 "parser.y" /* yacc.c:1646  */
+#line 255 "parser.y" /* yacc.c:1646  */
     { (yyval.factor_ptr) = new IntConst((yyvsp[0].intval)); printf("int const: %d\n", (yyvsp[0].intval)); }
-#line 1911 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1924 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 243 "parser.y" /* yacc.c:1646  */
+#line 256 "parser.y" /* yacc.c:1646  */
     { (yyval.factor_ptr) = new FloatConst((yyvsp[0].floatval)); printf("float const: %d\n", (yyvsp[0].floatval)); }
-#line 1917 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1930 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 244 "parser.y" /* yacc.c:1646  */
+#line 257 "parser.y" /* yacc.c:1646  */
     { (yyval.factor_ptr) = (yyvsp[0].callstmt_ptr); }
-#line 1923 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1936 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 245 "parser.y" /* yacc.c:1646  */
+#line 258 "parser.y" /* yacc.c:1646  */
     { (yyval.factor_ptr) = new Identity((yyvsp[0].strval)); printf("iden factor: %s\n", (yyvsp[0].strval)); }
-#line 1929 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1942 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 246 "parser.y" /* yacc.c:1646  */
+#line 259 "parser.y" /* yacc.c:1646  */
     { (yyval.factor_ptr) = (yyvsp[0].objmember_ptr); }
-#line 1935 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1948 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 251 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(add_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("+\n"); }
-#line 1941 "parser.tab.cpp" /* yacc.c:1646  */
+#line 264 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(add_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("+\n"); }
+#line 1954 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 252 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(sub_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("-\n"); }
-#line 1947 "parser.tab.cpp" /* yacc.c:1646  */
+#line 265 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(sub_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("-\n"); }
+#line 1960 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 253 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(mul_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("*\n"); }
-#line 1953 "parser.tab.cpp" /* yacc.c:1646  */
+#line 266 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(mul_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("*\n"); }
+#line 1966 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 254 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(div_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("/\n"); }
-#line 1959 "parser.tab.cpp" /* yacc.c:1646  */
+#line 267 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(div_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("/\n"); }
+#line 1972 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 255 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(mod_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("%\n"); }
-#line 1965 "parser.tab.cpp" /* yacc.c:1646  */
+#line 268 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(mod_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("%\n"); }
+#line 1978 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 256 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(eq_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("==\n"); }
-#line 1971 "parser.tab.cpp" /* yacc.c:1646  */
+#line 269 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(eq_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("==\n"); }
+#line 1984 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 257 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(less_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("<\n"); }
-#line 1977 "parser.tab.cpp" /* yacc.c:1646  */
+#line 270 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(less_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("<\n"); }
+#line 1990 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 258 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(lesseq_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("<=\n"); }
-#line 1983 "parser.tab.cpp" /* yacc.c:1646  */
+#line 271 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(lesseq_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("<=\n"); }
+#line 1996 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 259 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(greater_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf(">\n"); }
-#line 1989 "parser.tab.cpp" /* yacc.c:1646  */
+#line 272 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(greater_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf(">\n"); }
+#line 2002 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 260 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(greatereq_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf(">=\n"); }
-#line 1995 "parser.tab.cpp" /* yacc.c:1646  */
+#line 273 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(greatereq_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf(">=\n"); }
+#line 2008 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 261 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(and_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("&&\n"); }
-#line 2001 "parser.tab.cpp" /* yacc.c:1646  */
+#line 274 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(and_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("&&\n"); }
+#line 2014 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 262 "parser.y" /* yacc.c:1646  */
-    { (yyval.binexpr_ptr) = new BinExpr(or_op, (yyvsp[-2].expr_ptr), (yyvsp[0].expr_ptr)); printf("||\n"); }
-#line 2007 "parser.tab.cpp" /* yacc.c:1646  */
+#line 275 "parser.y" /* yacc.c:1646  */
+    { (yyval.binexpr_ptr) = new BinExpr(or_op, std::shared_ptr<Expr>((yyvsp[-2].expr_ptr)), std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("||\n"); }
+#line 2020 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 266 "parser.y" /* yacc.c:1646  */
-    { (yyval.singleexpr_ptr) = new SingleExpr(not_op, (yyvsp[0].expr_ptr)); printf("not expr\n"); }
-#line 2013 "parser.tab.cpp" /* yacc.c:1646  */
+#line 279 "parser.y" /* yacc.c:1646  */
+    { (yyval.singleexpr_ptr) = new SingleExpr(not_op, std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("not expr\n"); }
+#line 2026 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 267 "parser.y" /* yacc.c:1646  */
-    { (yyval.singleexpr_ptr) = new SingleExpr(neg_op, (yyvsp[0].expr_ptr)); printf("neg expr\n"); }
-#line 2019 "parser.tab.cpp" /* yacc.c:1646  */
+#line 280 "parser.y" /* yacc.c:1646  */
+    { (yyval.singleexpr_ptr) = new SingleExpr(neg_op, std::shared_ptr<Expr>((yyvsp[0].expr_ptr))); printf("neg expr\n"); }
+#line 2032 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 271 "parser.y" /* yacc.c:1646  */
+#line 284 "parser.y" /* yacc.c:1646  */
     { printf("type: int\n"); (yyval.strval) = "int"; }
-#line 2025 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2038 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 272 "parser.y" /* yacc.c:1646  */
+#line 285 "parser.y" /* yacc.c:1646  */
     { printf("type: double\n"); (yyval.strval) = "double"; }
-#line 2031 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2044 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 273 "parser.y" /* yacc.c:1646  */
+#line 286 "parser.y" /* yacc.c:1646  */
     { printf("type: float\n");  (yyval.strval) = "float"; }
-#line 2037 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2050 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 274 "parser.y" /* yacc.c:1646  */
+#line 287 "parser.y" /* yacc.c:1646  */
     { printf("type: short\n"); (yyval.strval) = "short"; }
-#line 2043 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2056 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 275 "parser.y" /* yacc.c:1646  */
+#line 288 "parser.y" /* yacc.c:1646  */
     { printf("type: long\n"); (yyval.strval) = "long"; }
-#line 2049 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2062 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 276 "parser.y" /* yacc.c:1646  */
+#line 289 "parser.y" /* yacc.c:1646  */
     { printf("type: unsigned\n"); (yyval.strval) = "unsigned long"; }
-#line 2055 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2068 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 277 "parser.y" /* yacc.c:1646  */
+#line 290 "parser.y" /* yacc.c:1646  */
     { printf("type: void\n"); (yyval.strval) = "void"; }
-#line 2061 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2074 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 278 "parser.y" /* yacc.c:1646  */
+#line 291 "parser.y" /* yacc.c:1646  */
     { printf("type: class\n"); (yyval.strval) = (yyvsp[0].strval); }
-#line 2067 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2080 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2071 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2084 "parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2302,13 +2315,13 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 280 "parser.y" /* yacc.c:1906  */
+#line 293 "parser.y" /* yacc.c:1906  */
 
 
 int main(int argc, const char *args[])
 {
 	/* 将注释去掉就能看到stack具体是怎么工作的.. */
-    	//yydebug = 1; 
+    	//yydebug = 1;
 
 	extern FILE *yyin;
 	if(argc > 1 && (yyin = fopen(args[1], "r")) == NULL) {
@@ -2318,7 +2331,7 @@ int main(int argc, const char *args[])
 
 	printf("input file: %s", args[1]);
 
-	prog = new Program(args[1]);
+	prog = std::make_shared<Program>(args[1]);
 
 	if(yyparse()) {
 		exit(-1);

@@ -54,14 +54,14 @@ public:
         std::cout << "Program create" << std::endl;
         Init();
     }
-
+    ~Program() { std::cout << "Program destroy" << std::endl; }
     void Init();
-    void Append(ASTNode *b);
+    void Append(std::shared_ptr<ASTNode> b);
 
     Value *Cgen();
 
 private:
-    std::vector<ASTNode*> begs_;
+    std::vector<std::shared_ptr<ASTNode> > begs_;
     std::string output_file_name_;
 };
 
@@ -87,10 +87,10 @@ public:
 class Variable {
 public:
     Variable() {}
-    Variable(std::string type, std::string name, Expr *init_val = NULL) : type_(type), name_(name), init_val_(init_val) {}
+    Variable(std::string type, std::string name, std::shared_ptr<Expr> init_val = NULL) : type_(type), name_(name), init_val_(init_val) {}
     std::string type_;
     std::string name_;
-    Expr *init_val_;
+    std::shared_ptr<Expr> init_val_;
 };
 
 // 形参列表
@@ -118,12 +118,12 @@ private:
 // 类节点
 class Class : public ASTNode {
 public:
-    Class(std::string name, ArgsList *memeber_list) : name_(name), member_varibles_(memeber_list) {}
+    Class(std::string name, std::shared_ptr<ArgsList> memeber_list) : name_(name), member_varibles_(memeber_list) {}
     Value *Cgen();
 
 private:
     std::string name_;
-    ArgsList *member_varibles_;
+    std::shared_ptr<ArgsList> member_varibles_;
 };
 
 // 语句节点，作为AST一个类别汇总
@@ -138,7 +138,9 @@ public:
     // 添加声明的变量
     DeclStmt() {}
     DeclStmt(const std::vector<Variable> &vars) : vars_(vars) {}
-    void Append(std::string type, std::string name, Expr *init_val);
+    ~DeclStmt() { std::cout << "DeclStmt destroy" << std::endl; }
+
+    void Append(std::string type, std::string name, std::shared_ptr<Expr> init_val);
     // 设置vars_中的所有变量的类型为type
     void SetTypeForAllVariables(std::string type);
     Value *Cgen();
@@ -152,50 +154,52 @@ private:
 class AssignStmt : public Sentence {
 public:
     AssignStmt() {}
-    AssignStmt(std::string var_name, Expr *assign_expr) {
+    AssignStmt(std::string var_name, std::shared_ptr<Expr> assign_expr) {
         var_name_ = var_name;
         assign_expr_ = assign_expr;
     }
 
-    AssignStmt(ObjMember *obj_member, Expr *assign_expr) :
+    AssignStmt(std::shared_ptr<ObjMember> obj_member, std::shared_ptr<Expr> assign_expr) :
         obj_member_(obj_member), assign_expr_(assign_expr) {}
 
+    ~AssignStmt() { std::cout << "AssignStmt destroy" << std::endl; }
     std::string GetName() { return var_name_; }
-    Expr *GetVal() { return assign_expr_; }
+    std::shared_ptr<Expr> GetVal() { return assign_expr_; }
 
     Value *Cgen();
 
 private:
     std::string var_name_;
-    ObjMember *obj_member_ = nullptr;
-    Expr *assign_expr_;
+    std::shared_ptr<ObjMember> obj_member_ = nullptr;
+    std::shared_ptr<Expr> assign_expr_;
 };
 
 // 条件语句
 class IfStmt : public Sentence {
 public:
     IfStmt() : true_block_(NULL), false_block_(NULL), bool_expr_(NULL) {}
-
-    void SetTrueBlock(Block *true_block);
-    void SetFalseBlock(Block *false_block);
-    void SetBoolExpr(Expr *bool_expr);
+    ~IfStmt() { std::cout << "IfStmt destroy" << std::endl; }
+    void SetTrueBlock(std::shared_ptr<Block> true_block);
+    void SetFalseBlock(std::shared_ptr<Block> false_block);
+    void SetBoolExpr(std::shared_ptr<Expr> bool_expr);
 
     Value *Cgen();
 
 private:
-    Expr *bool_expr_;
-    Block *true_block_;
-    Block *false_block_;
+    std::shared_ptr<Expr> bool_expr_;
+    std::shared_ptr<Block> true_block_;
+    std::shared_ptr<Block> false_block_;
 };
 
 // 返回语句
 class ReturnStmt : public Sentence {
 public:
-    ReturnStmt(Expr *expr) : expr_(expr) {}
+    ReturnStmt(std::shared_ptr<Expr> expr) : expr_(expr) {}
+    ~ReturnStmt() { std::cout << "ReturnStmt destroy" << std::endl; }
     Value *Cgen();
 
 private:
-    Expr *expr_;
+    std::shared_ptr<Expr> expr_;
 };
 
 // Break语句
@@ -209,28 +213,28 @@ private:
 // While语句
 class WhileStmt : public Sentence {
 public:
-    WhileStmt(Expr *bool_expr, Block *block) : bool_expr_(bool_expr), block_(block) {}
+    WhileStmt(std::shared_ptr<Expr> bool_expr, std::shared_ptr<Block> block) : bool_expr_(bool_expr), block_(block) {}
     Value *Cgen();
 
 private:
-    Expr *bool_expr_;
-    Block *block_;
+    std::shared_ptr<Expr> bool_expr_;
+    std::shared_ptr<Block> block_;
 };
 
 // For语句
 class ForStmt : public Sentence {
 public:
-    ForStmt(DeclStmt *init_sentence, Expr *bool_expr, AssignStmt *after_sentence, Block *loop_block) :
+    ForStmt(std::shared_ptr<DeclStmt> init_sentence, std::shared_ptr<Expr> bool_expr, std::shared_ptr<AssignStmt> after_sentence, std::shared_ptr<Block> loop_block) :
         init_sentence_(init_sentence), bool_expr_(bool_expr), after_sentence_(after_sentence),
         loop_block_(loop_block) {}
 
     Value *Cgen();
 
 private:
-    DeclStmt *init_sentence_;
-    Expr *bool_expr_;
-    AssignStmt *after_sentence_;
-    Block *loop_block_;
+    std::shared_ptr<DeclStmt> init_sentence_;
+    std::shared_ptr<Expr> bool_expr_;
+    std::shared_ptr<AssignStmt> after_sentence_;
+    std::shared_ptr<Block> loop_block_;
 };
 
 // Switch语句
@@ -271,15 +275,15 @@ enum BinOp {
 // 二元运算表达式
 class BinExpr : public Expr {
 public:
-    BinExpr(BinOp op, Expr *expr1, Expr *expr2) :
+    BinExpr(BinOp op, std::shared_ptr<Expr> expr1, std::shared_ptr<Expr> expr2) :
         op_(op), expr1_(expr1), expr2_(expr2) {}
-
+    ~BinExpr() { std::cout << "BinExpr destroy" << std::endl; }
     Value *Cgen();
 
 private:
     BinOp op_;
-    Expr *expr1_;
-    Expr *expr2_;
+    std::shared_ptr<Expr> expr1_;
+    std::shared_ptr<Expr> expr2_;
 };
 
 enum SingleOp {
@@ -290,11 +294,11 @@ enum SingleOp {
 // 一元运算表达式
 class SingleExpr : public Expr {
 public:
-    SingleExpr(SingleOp op, Expr *expr) : op_(op), expr_(expr) {}
+    SingleExpr(SingleOp op, std::shared_ptr<Expr> expr) : op_(op), expr_(expr) {}
     Value *Cgen();
 private:
     int op_;
-    Expr *expr_;
+    std::shared_ptr<Expr> expr_;
 };
 
 // 字符串常量
@@ -340,26 +344,28 @@ private:
 class CallStmt : public Factor {
 public:
     CallStmt() {}
-    CallStmt(std::string func_name, const std::vector<Expr*> &vals) :
+    CallStmt(std::string func_name, const std::vector<std::shared_ptr<Expr> > &vals) :
         func_name_(func_name), vals_(vals) {}
 
     Value *Cgen();
 
 private:
     std::string func_name_;
-    std::vector<Expr*> vals_;
+    std::vector<std::shared_ptr<Expr> > vals_;
 };
 
 // 类成员变量
 class ObjMember : public Factor {
 public:
     ObjMember(const std::string &var_name, const std::string &member_name) :
-        var_name_(var_name), member_name_(member_name) {}
+        var_name_(var_name), member_name_(member_name){}
+    void SetIsVar(bool is_var) { is_var_ = is_var; }
     Value *Cgen();
 
 private:
     std::string var_name_;
     std::string member_name_;
+    bool is_var_ = false;
 };
 
 // 类函数调用
@@ -368,49 +374,49 @@ public:
     Value *Cgen();
 private:
     std::string obj_name_;
-    CallStmt *call_stmt_;
+    std::shared_ptr<CallStmt> call_stmt_;
 };
 
 // 函数体展开
 class Block : public ASTNode {
 public:
-    void Append(Sentence *s);
+    void Append(std::shared_ptr<Sentence> s);
 
     Value *Cgen();
 
 private:
-    std::vector<Sentence*> sentence_;
+    std::vector<std::shared_ptr<Sentence> > sentence_;
 };
 
 // 函数节点
 class Func : public ASTNode {
 public:
-    Func(std::string return_type, std::string name, ArgsList *args, Block *block) {
+    Func(std::string return_type, std::string name, std::shared_ptr<ArgsList> args, std::shared_ptr<Block> block) {
         // TODO: 成员初始化
         return_type_ = return_type;
         func_name_ = name;
         args_ = args;
         block_ = block;
     }
-
+    virtual ~Func() { std::cout << "Func destroy" << std::endl; }
     Value *Cgen();
 
 private:
     std::string return_type_;   // 函数返回类型
     std::string func_name_; // 函数名字
-    ArgsList *args_; // 形参列表
-    Block *block_;  // 函数体
+    std::shared_ptr<ArgsList> args_; // 形参列表
+    std::shared_ptr<Block> block_;  // 函数体
 };
 
 // 实参list
 class ExprList {
 public:
     ExprList() {}
-    void Append(Expr *expr) { expr_list_.push_back(expr); }
-    std::vector<Expr*> GetExprList() { return expr_list_; }
+    void Append(std::shared_ptr<Expr> expr) { expr_list_.push_back(expr); }
+    std::vector<std::shared_ptr<Expr> > GetExprList() { return expr_list_; }
 
 private:
-    std::vector<Expr*> expr_list_;
+    std::vector<std::shared_ptr<Expr> > expr_list_;
 };
 
 

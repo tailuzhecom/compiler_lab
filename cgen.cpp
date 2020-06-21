@@ -17,7 +17,7 @@ std::map<Type*, std::map<std::string, int> > class_mem_offset;
 
 
 // 程序节点，AST的根节点
-void Program::Append(ASTNode *b) {
+void Program::Append(std::shared_ptr<ASTNode> b) {
     begs_.push_back(b);
 }
 
@@ -88,7 +88,7 @@ Value *Sentence::Cgen() {
 // 声明语句
 
 // 添加声明的变量
-void DeclStmt::Append(std::string type, std::string name, Expr *init_val) {
+void DeclStmt::Append(std::string type, std::string name, std::shared_ptr<Expr> init_val) {
     vars_.push_back(Variable(type, name, init_val));
 }
 
@@ -139,15 +139,15 @@ Value *AssignStmt::Cgen() {
 }
 
 // 条件语句
-void IfStmt::SetTrueBlock(Block *true_block) {
+void IfStmt::SetTrueBlock(std::shared_ptr<Block> true_block) {
     true_block_ = true_block;
 }
 
-void IfStmt::SetFalseBlock(Block *false_block) {
+void IfStmt::SetFalseBlock(std::shared_ptr<Block> false_block) {
     false_block_ = false_block;
 }
 
-void IfStmt::SetBoolExpr(Expr *bool_expr) {
+void IfStmt::SetBoolExpr(std::shared_ptr<Expr> bool_expr) {
     bool_expr_ = bool_expr;
 }
 
@@ -396,6 +396,9 @@ Value *ObjMember::Cgen() {
         std::vector<Value*> gep_list({ConstantInt::get(Type::getInt32Ty(TheContext), APInt(32, 0)),
                                       ConstantInt::get(Type::getInt32Ty(TheContext), APInt(32, offset))});
         Value *attr_ptr = Builder.CreateGEP(var, gep_list);
+
+        if (is_var_ == false)
+            return Builder.CreateLoad(attr_ptr);
         return attr_ptr;
     }
     else {
@@ -412,7 +415,7 @@ Value *ObjCall::Cgen() {
 }
 
 // 函数体展开
-void Block::Append(Sentence *s) {
+void Block::Append(std::shared_ptr<Sentence> s) {
     sentence_.push_back(s);
 }
 
